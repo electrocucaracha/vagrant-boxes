@@ -1,0 +1,6 @@
+AllCops:
+  NewCops: disable
+Naming/FileName:
+  Exclude:
+    - tpl/generic-ubuntu2204.rb
+    - tpl/generic-ubuntu2404.rb

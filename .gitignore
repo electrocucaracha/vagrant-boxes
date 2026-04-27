@@ -1,0 +1,14 @@
+# Generated build artifacts
+dist/
+output/
+
+# Local Vagrant/Packer state
+.vagrant/
+.packer.d/
+.packer_cache/
+
+# Editor and OS artifacts
+*.swp
+*.swo
+*~
+.DS_Store
