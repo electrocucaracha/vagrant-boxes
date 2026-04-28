@@ -10,7 +10,8 @@
 DOCKER_CMD ?= $(shell which docker 2> /dev/null || which podman 2> /dev/null || echo docker)
 
 test:
-	@go test -v ./...
+	@command -v shellspec > /dev/null || curl -fsSL https://git.io/shellspec | sh -s -- --yes
+	@PATH="$(HOME)/.local/bin:$$PATH" shellspec
 
 .PHONY: lint
 lint:

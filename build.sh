@@ -8,13 +8,6 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
-set -o pipefail
-set -o errexit
-set -o nounset
-if [[ ${DEBUG:-false} == "true" ]]; then
-	set -o xtrace
-fi
-
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 OUTPUT_ROOT=${OUTPUT_ROOT:-"${SCRIPT_DIR}/dist"}
 WORK_DIR=${WORK_DIR:-"${SCRIPT_DIR}/output"}
@@ -28,6 +21,15 @@ UTM_PACKER_PLUGIN_SOURCE=${UTM_PACKER_PLUGIN_SOURCE:-github.com/electrocucaracha
 UTM_PACKER_PLUGIN_VERSION=${UTM_PACKER_PLUGIN_VERSION:-v4.0.3}
 
 export PACKER_GETTER_READ_TIMEOUT
+
+function _set_shell_options() {
+	set -o pipefail
+	set -o errexit
+	set -o nounset
+	if [[ ${DEBUG:-false} == "true" ]]; then
+		set -o xtrace
+	fi
+}
 
 function _parse_list() {
 	local raw_value=${1:?list value is required}
@@ -415,15 +417,22 @@ function _deploy_www() {
 	cp -R "${OUTPUT_ROOT}/${BOX_NAMESPACE}/." "${deploy_dir}/"
 }
 
-_check_reqs
-_validate
+function main() {
+	_set_shell_options
+	_check_reqs
+	_validate
 
-for distro in "${DISTROS[@]}"; do
-	for provider in "${PROVIDERS[@]}"; do
-		_build_box "${distro}" "${provider}"
+	for distro in "${DISTROS[@]}"; do
+		for provider in "${PROVIDERS[@]}"; do
+			_build_box "${distro}" "${provider}"
+		done
+
+		_write_metadata "${distro}"
 	done
 
-	_write_metadata "${distro}"
-done
+	_deploy_www
+}
 
-_deploy_www
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+	main "$@"
+fi

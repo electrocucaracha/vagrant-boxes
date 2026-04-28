@@ -60,6 +60,16 @@ Before using a generated UTM box with Vagrant, install the provider plugin:
 vagrant plugin install vagrant_utm
 ```
 
+## Testing
+
+BDD-style shell tests use [ShellSpec](https://github.com/shellspec/shellspec).
+
+Run:
+
+```bash
+make test
+```
+
 ### `build.sh` environment variables
 
 | Name           | Default value           | Description                                                                                              |
