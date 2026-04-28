@@ -3,5 +3,5 @@
   "Website": "https://vagrantcloud.com/generic/",
   "Artifacts": "https://vagrantcloud.com/generic/",
   "Repository": "https://github.com/electrocucaracha/vagrant-boxes",
-  "Description": "Ubuntu Vagrant base boxes for the libvirt and VirtualBox providers."
+  "Description": "Ubuntu Vagrant base boxes for the libvirt, VirtualBox, and UTM providers."
 }

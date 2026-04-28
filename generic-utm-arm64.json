@@ -1,0 +1,197 @@
+{
+  "variables": {
+    "box_version": "{{env `VERSION`}}"
+  },
+  "provisioners": [
+    {
+      "scripts": [
+        "scripts/ubuntu2204/apt.sh",
+        "scripts/ubuntu2204/floppy.sh",
+        "scripts/ubuntu2204/network.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "start_retry_timeout": "15m",
+      "expect_disconnect": "true",
+      "only": ["generic-ubuntu2204-utm-arm64"]
+    },
+    {
+      "scripts": [
+        "scripts/ubuntu2204/vagrant.sh",
+        "scripts/ubuntu2204/profile.sh",
+        "scripts/ubuntu2204/motd.sh",
+        "scripts/ubuntu2204/fixtty.sh",
+        "scripts/ubuntu2204/qemu.sh",
+        "scripts/ubuntu2204/cleanup.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "pause_before": "120s",
+      "start_retry_timeout": "15m",
+      "expect_disconnect": "true",
+      "only": ["generic-ubuntu2204-utm-arm64"]
+    },
+    {
+      "scripts": [
+        "scripts/ubuntu2404/apt.sh",
+        "scripts/ubuntu2404/floppy.sh",
+        "scripts/ubuntu2404/network.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "start_retry_timeout": "15m",
+      "expect_disconnect": "true",
+      "only": ["generic-ubuntu2404-utm-arm64"]
+    },
+    {
+      "scripts": [
+        "scripts/ubuntu2404/vagrant.sh",
+        "scripts/ubuntu2404/profile.sh",
+        "scripts/ubuntu2404/motd.sh",
+        "scripts/ubuntu2404/fixtty.sh",
+        "scripts/ubuntu2404/qemu.sh",
+        "scripts/ubuntu2404/cleanup.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "pause_before": "120s",
+      "start_retry_timeout": "15m",
+      "expect_disconnect": "true",
+      "only": ["generic-ubuntu2404-utm-arm64"]
+    },
+    {
+      "scripts": [
+        "scripts/common/motd.sh",
+        "scripts/common/keys.sh",
+        "scripts/common/machine.sh",
+        "scripts/common/leases.sh",
+        "scripts/common/localtime.sh",
+        "scripts/common/zerodisk.sh",
+        "scripts/common/lockout.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "start_retry_timeout": "15m",
+      "expect_disconnect": "true"
+    }
+  ],
+  "builders": [
+    {
+      "type": "utm-iso",
+      "name": "generic-ubuntu2204-utm-arm64",
+      "vm_name": "generic-ubuntu2204-utm-arm64",
+      "output_directory": "output/generic-ubuntu2204-utm-arm64",
+      "vm_backend": "qemu",
+      "vm_arch": "aarch64",
+      "uefi_boot": true,
+      "hypervisor": true,
+      "display_hardware_type": "virtio-gpu-device",
+      "display_nopause": true,
+      "boot_nopause": true,
+      "export_nopause": true,
+      "boot_wait": "10s",
+      "boot_keygroup_interval": "1s",
+      "boot_command": [
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "c<wait10>",
+        "set gfxpayload=keep<enter><wait10>",
+        "linux /casper/vmlinuz autoinstall quiet net.ifnames=0 biosdevname=0 ",
+        "ds=nocloud-net\\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2204/ --- <enter><wait10>",
+        "initrd /casper/initrd<enter><wait10>",
+        "boot<enter>"
+      ],
+      "disk_size": 131072,
+      "hard_drive_interface": "virtio",
+      "iso_interface": "usb",
+      "cpus": 2,
+      "memory": 2048,
+      "http_directory": "http",
+      "iso_url": "https://cdimage.ubuntu.com/releases/22.04/release/ubuntu-22.04.5-live-server-arm64.iso",
+      "iso_checksum": "sha256:eafec62cfe760c30cac43f446463e628fada468c2de2f14e0e2bc27295187505",
+      "ssh_username": "root",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_handshake_attempts": 1000,
+      "ssh_timeout": "3600s",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+      "guest_additions_mode": "disable"
+    },
+    {
+      "type": "utm-iso",
+      "name": "generic-ubuntu2404-utm-arm64",
+      "vm_name": "generic-ubuntu2404-utm-arm64",
+      "output_directory": "output/generic-ubuntu2404-utm-arm64",
+      "vm_backend": "qemu",
+      "vm_arch": "aarch64",
+      "uefi_boot": true,
+      "hypervisor": true,
+      "display_hardware_type": "virtio-gpu-device",
+      "display_nopause": true,
+      "boot_nopause": true,
+      "export_nopause": true,
+      "boot_wait": "10s",
+      "boot_keygroup_interval": "1s",
+      "boot_command": [
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "<tab><wait><tab><wait><tab><wait><tab><wait><tab><wait><tab><wait>",
+        "c<wait10>",
+        "set gfxpayload=keep<enter><wait10>",
+        "linux /casper/vmlinuz autoinstall quiet net.ifnames=0 biosdevname=0 ",
+        "ds=nocloud-net\\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2404/ --- <enter><wait10>",
+        "initrd /casper/initrd<enter><wait10>",
+        "boot<enter>"
+      ],
+      "disk_size": 131072,
+      "hard_drive_interface": "virtio",
+      "iso_interface": "usb",
+      "cpus": 2,
+      "memory": 2048,
+      "http_directory": "http",
+      "iso_url": "https://cdimage.ubuntu.com/releases/24.04/release/ubuntu-24.04.3-live-server-arm64.iso",
+      "iso_checksum": "sha256:2ee2163c9b901ff5926400e80759088ff3b879982a3956c02100495b489fd555",
+      "ssh_username": "root",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_handshake_attempts": 1000,
+      "ssh_timeout": "3600s",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+      "guest_additions_mode": "disable"
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "type": "utm-vagrant",
+        "compression_level": 9,
+        "keep_input_artifact": false,
+        "architecture": "arm64",
+        "vagrantfile_template": "tpl/generic-{{split build_name \"-\" 1}}-utm.rb",
+        "output": "output/generic-{{split build_name \"-\" 1}}-{{split build_name \"-\" 2}}-{{split build_name \"-\" 3}}-{{user `box_version`}}.box",
+        "include": ["tpl/generic/info.json"]
+      },
+      {
+        "type": "checksum",
+        "checksum_types": ["sha256"],
+        "keep_input_artifact": false,
+        "output": "output/generic-{{split build_name \"-\" 1}}-{{split build_name \"-\" 2}}-{{split build_name \"-\" 3}}-{{user `box_version`}}.box.sha256"
+      }
+    ]
+  ]
+}

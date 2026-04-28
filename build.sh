@@ -22,6 +22,8 @@ VERSION=${VERSION:-4.3.12}
 BOX_NAMESPACE=generic
 BOX_BASE_URL=${BOX_BASE_URL:-}
 PACKER_GETTER_READ_TIMEOUT=${PACKER_GETTER_READ_TIMEOUT:-90m}
+UTM_PACKER_PLUGIN_SOURCE=${UTM_PACKER_PLUGIN_SOURCE:-github.com/electrocucaracha/utm}
+UTM_PACKER_PLUGIN_VERSION=${UTM_PACKER_PLUGIN_VERSION:-v4.0.3}
 
 export PACKER_GETTER_READ_TIMEOUT
 
@@ -35,16 +37,12 @@ function _parse_list() {
 	printf '%s\n' "${values[@]}"
 }
 
-mapfile -t DISTROS < <(_parse_list "${DISTROS:-ubuntu2204 ubuntu2404}")
-mapfile -t PROVIDERS < <(_parse_list "${PROVIDERS:-libvirt virtualbox}")
+DISTROS=($(_parse_list "${DISTROS:-ubuntu2204 ubuntu2404}"))
+PROVIDERS=($(_parse_list "${PROVIDERS:-libvirt virtualbox}"))
 
-declare -A PACKER_TEMPLATES=(
-	[libvirt]=generic-libvirt-x64.json
-	[virtualbox]=generic-virtualbox-x64.json
-)
-
-declare -A BUILT_BOXES=()
-declare -A BUILT_CHECKSUMS=()
+BUILT_KEYS=()
+BUILT_BOXES=()
+BUILT_CHECKSUMS=()
 
 function _get_description() {
 	case "$1" in
@@ -52,6 +50,77 @@ function _get_description() {
 	ubuntu2404) echo "Ubuntu Noble 24.04" ;;
 	*) echo "Unknown" ;;
 	esac
+}
+
+function _get_packer_template() {
+	case "$1" in
+	libvirt) echo "generic-libvirt-x64.json" ;;
+	utm) echo "generic-utm-arm64.json" ;;
+	virtualbox) echo "generic-virtualbox-x64.json" ;;
+	esac
+}
+
+function _get_provider_build_arch() {
+	case "$1" in
+	libvirt | virtualbox) echo "x64" ;;
+	utm) echo "arm64" ;;
+	esac
+}
+
+function _get_provider_metadata_arch() {
+	case "$1" in
+	libvirt | virtualbox) echo "amd64" ;;
+	utm) echo "arm64" ;;
+	esac
+}
+
+function _find_built_box_index() {
+	local key=${1:?build key is required}
+	local index
+
+	for ((index = 0; index < ${#BUILT_KEYS[@]}; index++)); do
+		if [[ ${BUILT_KEYS[${index}]} == "${key}" ]]; then
+			printf '%s' "${index}"
+			return 0
+		fi
+	done
+
+	return 1
+}
+
+function _record_built_box() {
+	local key=${1:?build key is required}
+	local box_path=${2:?box path is required}
+	local checksum_path=${3:?checksum path is required}
+	local index=
+
+	if index=$(_find_built_box_index "${key}"); then
+		BUILT_BOXES[${index}]="${box_path}"
+		BUILT_CHECKSUMS[${index}]="${checksum_path}"
+		return
+	fi
+
+	BUILT_KEYS+=("${key}")
+	BUILT_BOXES+=("${box_path}")
+	BUILT_CHECKSUMS+=("${checksum_path}")
+}
+
+function _get_built_box_path() {
+	local key=${1:?build key is required}
+	local index=
+
+	if index=$(_find_built_box_index "${key}"); then
+		printf '%s' "${BUILT_BOXES[${index}]}"
+	fi
+}
+
+function _get_built_checksum_path() {
+	local key=${1:?build key is required}
+	local index=
+
+	if index=$(_find_built_box_index "${key}"); then
+		printf '%s' "${BUILT_CHECKSUMS[${index}]}"
+	fi
 }
 
 function _require_command() {
@@ -65,10 +134,32 @@ function _require_command() {
 
 function _ensure_packer_plugin() {
 	local plugin=${1:?plugin is required}
+	local version=${2:-}
+	local installed_plugins=
 
-	if ! packer plugins installed 2>/dev/null | grep -q "${plugin}"; then
-		echo "Installing missing packer plugin: ${plugin}"
-		packer plugins install "${plugin}"
+	installed_plugins=$(packer plugins installed 2>/dev/null || true)
+
+	if grep -q "${plugin}" <<<"${installed_plugins}" &&
+		([[ -z ${version} ]] || grep -q "_${version#v}_" <<<"${installed_plugins}"); then
+		return
+	fi
+
+	echo "Installing missing packer plugin: ${plugin}${version:+ @ ${version}}"
+
+	if [[ -n ${version} ]]; then
+		packer plugins install "${plugin}" "${version}"
+		return
+	fi
+
+	packer plugins install "${plugin}"
+}
+
+function _remove_packer_plugin() {
+	local plugin=${1:?plugin is required}
+
+	if packer plugins installed 2>/dev/null | grep -q "${plugin}"; then
+		echo "Removing conflicting packer plugin: ${plugin}"
+		packer plugins remove "${plugin}"
 	fi
 }
 
@@ -88,7 +179,7 @@ function _assert_supported_provider() {
 	local provider=${1:?provider is required}
 
 	case "${provider}" in
-	libvirt | virtualbox) ;;
+	libvirt | utm | virtualbox) ;;
 	*)
 		echo "ERROR: Unsupported provider '${provider}'"
 		exit 1
@@ -103,19 +194,28 @@ function _check_reqs() {
 	_require_command sha256sum
 	_require_command vagrant
 
-	_ensure_packer_plugin github.com/hashicorp/qemu
-	_ensure_packer_plugin github.com/hashicorp/vagrant
-	_ensure_packer_plugin github.com/hashicorp/virtualbox
-
 	for provider in "${PROVIDERS[@]}"; do
 		_assert_supported_provider "${provider}"
 
 		case "${provider}" in
 		libvirt)
+			_ensure_packer_plugin github.com/hashicorp/qemu
+			_ensure_packer_plugin github.com/hashicorp/vagrant
 			_require_command qemu-system-x86_64
 			_require_command virsh
 			;;
+		utm)
+			_remove_packer_plugin github.com/naveenrajm7/utm
+			_ensure_packer_plugin "${UTM_PACKER_PLUGIN_SOURCE}" "${UTM_PACKER_PLUGIN_VERSION}"
+			_require_command utmctl
+			if [[ $(uname -s) != "Darwin" ]]; then
+				echo "ERROR: utm provider builds require macOS"
+				exit 1
+			fi
+			;;
 		virtualbox)
+			_ensure_packer_plugin github.com/hashicorp/vagrant
+			_ensure_packer_plugin github.com/hashicorp/virtualbox
 			_require_command VBoxManage
 			;;
 		esac
@@ -154,17 +254,41 @@ function _box_url() {
 	printf 'file://%s' "$(realpath "${box_path}")"
 }
 
+function _cleanup_utm_vm() {
+	local vm_name=${1:?vm name is required}
+	local vm_status=
+
+	if ! vm_status=$(utmctl status "${vm_name}" 2>/dev/null); then
+		return
+	fi
+
+	echo "Removing existing UTM VM: ${vm_name}"
+
+	if [[ ${vm_status} != "stopped" ]]; then
+		utmctl stop "${vm_name}" --force >/dev/null
+	fi
+
+	utmctl delete "${vm_name}" >/dev/null
+}
+
 function _build_box() {
 	local distro=${1:?distro is required}
 	local provider=${2:?provider is required}
-	local build_name="${BOX_NAMESPACE}-${distro}-${provider}-x64"
-	local template="${PACKER_TEMPLATES[${provider}]}"
+	local build_arch
+	build_arch=$(_get_provider_build_arch "${provider}")
+	local build_name="${BOX_NAMESPACE}-${distro}-${provider}-${build_arch}"
+	local template
+	template=$(_get_packer_template "${provider}")
 	local box_name="${build_name}-${VERSION}.box"
 	local box_path="${WORK_DIR}/${box_name}"
 	local checksum_path="${box_path}.sha256"
 	local publish_dir="${OUTPUT_ROOT}/${BOX_NAMESPACE}/${distro}"
 
 	mkdir -p "${WORK_DIR}"
+
+	if [[ ${provider} == "utm" ]]; then
+		_cleanup_utm_vm "${build_name}"
+	fi
 
 	(
 		cd "${SCRIPT_DIR}"
@@ -176,21 +300,60 @@ function _build_box() {
 	mv "${checksum_path}" "${publish_dir}/"
 	rm -rf "${WORK_DIR:?}/${build_name}"
 
-	BUILT_BOXES["${distro}:${provider}"]="${publish_dir}/${box_name}"
-	BUILT_CHECKSUMS["${distro}:${provider}"]="${publish_dir}/${box_name}.sha256"
+	_record_built_box \
+		"${distro}:${provider}" \
+		"${publish_dir}/${box_name}" \
+		"${publish_dir}/${box_name}.sha256"
+}
+
+function _get_default_architecture() {
+	local distro=${1:?distro is required}
+	local first_architecture=
+
+	for provider in "${PROVIDERS[@]}"; do
+		local key="${distro}:${provider}"
+		local box_path
+		box_path=$(_get_built_box_path "${key}")
+		local architecture
+		architecture=$(_get_provider_metadata_arch "${provider}")
+
+		[[ -n ${box_path} ]] || continue
+
+		if [[ -z ${first_architecture} ]]; then
+			first_architecture=${architecture}
+		fi
+
+		if [[ ${architecture} == "amd64" ]]; then
+			printf 'amd64'
+			return
+		fi
+	done
+
+	printf '%s' "${first_architecture}"
 }
 
 function _write_metadata() {
 	local distro=${1:?distro is required}
 	local publish_dir="${OUTPUT_ROOT}/${BOX_NAMESPACE}/${distro}"
+	local default_architecture
+	default_architecture=$(_get_default_architecture "${distro}")
 	local provider_entries=()
 
 	mkdir -p "${publish_dir}"
 
 	for provider in "${PROVIDERS[@]}"; do
 		local key="${distro}:${provider}"
-		local box_path=${BUILT_BOXES[${key}]:-}
-		local checksum_path=${BUILT_CHECKSUMS[${key}]:-}
+		local box_path
+		box_path=$(_get_built_box_path "${key}")
+		local checksum_path
+		checksum_path=$(_get_built_checksum_path "${key}")
+		local architecture
+		architecture=$(_get_provider_metadata_arch "${provider}")
+		local is_default_architecture=false
+
+		if [[ ${architecture} == "${default_architecture}" ]]; then
+			is_default_architecture=true
+		fi
 
 		[[ -n ${box_path} ]] || continue
 		[[ -n ${checksum_path} ]] || continue
@@ -200,13 +363,15 @@ function _write_metadata() {
 				--arg name "${provider}" \
 				--arg url "$(_box_url "${distro}" "${box_path}")" \
 				--arg checksum "$(awk '{ print $1 }' "${checksum_path}")" \
+				--arg architecture "${architecture}" \
+				--argjson default_architecture "${is_default_architecture}" \
 				'{
                     name: $name,
                     url: $url,
                     checksum_type: "sha256",
                     checksum: $checksum,
-                    architecture: "amd64",
-                    default_architecture: true
+                    architecture: $architecture,
+                    default_architecture: $default_architecture
                 }')"
 		)
 	done

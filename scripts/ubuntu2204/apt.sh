@@ -178,7 +178,9 @@ retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" update
 error
 
 # Ensure the linux-tools and linux-cloud-tools get updated with the kernel.
-retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" install linux-cloud-tools-virtual
+if apt-cache show linux-cloud-tools-virtual >/dev/null 2>&1; then
+	retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" install linux-cloud-tools-virtual
+fi
 
 # Upgrade the installed packages.
 retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" upgrade

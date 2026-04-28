@@ -37,8 +37,9 @@ error() {
 	fi
 }
 
-# Bail if we are not running atop QEMU.
-if [[ $(dmidecode -s system-product-name) != "KVM" && $(dmidecode -s system-manufacturer) != "QEMU" ]]; then
+# Bail if we are not running atop a QEMU-based hypervisor build.
+if [[ ! ${PACKER_BUILD_NAME:-} =~ ^generic-ubuntu(2204|2404)-utm-arm64$ ]] &&
+	[[ $(dmidecode -s system-product-name) != "KVM" && $(dmidecode -s system-manufacturer) != "QEMU" ]]; then
 	exit 0
 fi
 
