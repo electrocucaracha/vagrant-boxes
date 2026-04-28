@@ -42,6 +42,8 @@ Run:
 
 By default this builds Ubuntu 22.04 and 24.04 boxes for the `libvirt` and `virtualbox` providers and writes the published artifacts under `dist/generic/`.
 
+Deployment to `/var/www` is disabled by default. Enable it explicitly with `DEPLOY_WWW=true` if you want `build.sh` to mirror the published artifacts into a web root after the build completes.
+
 UTM builds are available by selecting `utm` explicitly in `PROVIDERS`. Those builds target Ubuntu arm64 on macOS and emit boxes for the `vagrant_utm` provider plugin.
 
 If a prior UTM build left behind a VM with the same generated name, `build.sh` removes that stale VM before retrying the build.
@@ -67,6 +69,8 @@ vagrant plugin install vagrant_utm
 | `WORK_DIR`     | `${SCRIPT_DIR}/output`  | Working directory used for intermediate build artifacts before they are moved to the publish directory.  |
 | `VERSION`      | `4.3.12`                | Box version embedded in generated box filenames and metadata.                                            |
 | `BOX_BASE_URL` | empty                   | Base URL used in generated metadata box URLs. When unset, metadata uses local `file://` URLs.            |
+| `DEPLOY_WWW`   | `false`                 | When set to `true`, copies the published `${BOX_NAMESPACE}` tree into `WWW_ROOT` after the build finishes. |
+| `WWW_ROOT`     | `/var/www`              | Destination root used when `DEPLOY_WWW=true`. The build publishes into `${WWW_ROOT}/${BOX_NAMESPACE}`. |
 | `PACKER_GETTER_READ_TIMEOUT` | `90m`     | Read timeout used by Packer's downloader for large remote assets such as Ubuntu ISOs. Increase it on slower networks. |
 | `UTM_PACKER_PLUGIN_SOURCE` | `github.com/electrocucaracha/utm` | Packer plugin source used for UTM builds. Override to test another compatible fork or release source. |
 | `UTM_PACKER_PLUGIN_VERSION` | `v4.0.3` | Version of the forked UTM Packer plugin installed for UTM builds. |

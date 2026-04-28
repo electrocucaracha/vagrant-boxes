@@ -21,6 +21,8 @@ WORK_DIR=${WORK_DIR:-"${SCRIPT_DIR}/output"}
 VERSION=${VERSION:-4.3.12}
 BOX_NAMESPACE=generic
 BOX_BASE_URL=${BOX_BASE_URL:-}
+DEPLOY_WWW=${DEPLOY_WWW:-false}
+WWW_ROOT=${WWW_ROOT:-/var/www}
 PACKER_GETTER_READ_TIMEOUT=${PACKER_GETTER_READ_TIMEOUT:-90m}
 UTM_PACKER_PLUGIN_SOURCE=${UTM_PACKER_PLUGIN_SOURCE:-github.com/electrocucaracha/utm}
 UTM_PACKER_PLUGIN_VERSION=${UTM_PACKER_PLUGIN_VERSION:-v4.0.3}
@@ -398,7 +400,19 @@ function _write_metadata() {
                     providers: $providers
                 }
             ]
-        }' >"${publish_dir}/metadata.json"
+	        }' >"${publish_dir}/metadata.json"
+}
+
+function _deploy_www() {
+	if [[ ${DEPLOY_WWW} != "true" ]]; then
+		return
+	fi
+
+	local deploy_dir="${WWW_ROOT%/}/${BOX_NAMESPACE}"
+
+	mkdir -p "${deploy_dir}"
+	rm -rf "${deploy_dir:?}/"*
+	cp -R "${OUTPUT_ROOT}/${BOX_NAMESPACE}/." "${deploy_dir}/"
 }
 
 _check_reqs
@@ -411,3 +425,5 @@ for distro in "${DISTROS[@]}"; do
 
 	_write_metadata "${distro}"
 done
+
+_deploy_www
