@@ -1,3 +1,5 @@
+#!/bin/bash
+
 Describe 'build.sh'
   Include build.sh
 
@@ -38,6 +40,7 @@ Describe 'build.sh'
     It 'builds hosted URLs when BOX_BASE_URL is set'
       box_file="$TEST_ROOT/example.box"
       : > "$box_file"
+      # shellcheck disable=SC2034 # Used by build.sh helpers loaded via ShellSpec.
       BOX_BASE_URL='https://example.invalid/releases/'
 
       When call _box_url ubuntu2204 "$box_file"
@@ -64,6 +67,7 @@ Describe 'build.sh'
       OUTPUT_ROOT="$TEST_ROOT/dist"
       BOX_NAMESPACE=generic
       WWW_ROOT="$TEST_ROOT/www"
+      # shellcheck disable=SC2034 # Used by build.sh helpers loaded via ShellSpec.
       DEPLOY_WWW=true
 
       mkdir -p "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu2204"

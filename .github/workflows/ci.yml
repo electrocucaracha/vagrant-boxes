@@ -1,3 +1,4 @@
+---
 # SPDX-license-identifier: Apache-2.0
 ##############################################################################
 # Copyright (c) 2026
@@ -7,8 +8,7 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 name: CI
-# yamllint disable-line rule:truthy
-on:
+"on":
   push:
   pull_request:
 permissions: read-all
@@ -33,7 +33,6 @@ jobs:
               - '.shellspec'
               - 'spec/**'
               - 'Makefile'
-
   check-shellspec:
     name: Run BDD shell specs
     needs: changes
@@ -46,7 +45,10 @@ jobs:
         with:
           persist-credentials: false
       - name: Install ShellSpec
-        run: curl -fsSL https://github.com/shellspec/shellspec/releases/latest/download/shellspec-dist.tar.gz | tar -xz -C ..
+        run: >-
+          curl -fsSL
+          https://github.com/shellspec/shellspec/releases/latest/download/shellspec-dist.tar.gz
+          | tar -xz -C ..
       - name: Run ShellSpec
         shell: 'script -q -e -c "bash {0}"'
         run: ../shellspec/shellspec --profile --xtrace

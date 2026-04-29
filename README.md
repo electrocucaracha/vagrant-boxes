@@ -72,17 +72,17 @@ make test
 
 ### `build.sh` environment variables
 
-| Name           | Default value           | Description                                                                                              |
-| -------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
-| `DEBUG`        | `false`                 | Enables shell tracing with `set -o xtrace` when set to `true`.                                           |
-| `OUTPUT_ROOT`  | `${SCRIPT_DIR}/dist`    | Root directory where published box artifacts and `metadata.json` files are written.                      |
-| `WORK_DIR`     | `${SCRIPT_DIR}/output`  | Working directory used for intermediate build artifacts before they are moved to the publish directory.  |
-| `VERSION`      | `4.3.12`                | Box version embedded in generated box filenames and metadata.                                            |
-| `BOX_BASE_URL` | empty                   | Base URL used in generated metadata box URLs. When unset, metadata uses local `file://` URLs.            |
-| `DEPLOY_WWW`   | `false`                 | When set to `true`, copies the published `${BOX_NAMESPACE}` tree into `WWW_ROOT` after the build finishes. |
-| `WWW_ROOT`     | `/var/www`              | Destination root used when `DEPLOY_WWW=true`. The build publishes into `${WWW_ROOT}/${BOX_NAMESPACE}`. |
-| `PACKER_GETTER_READ_TIMEOUT` | `90m`     | Read timeout used by Packer's downloader for large remote assets such as Ubuntu ISOs. Increase it on slower networks. |
-| `UTM_PACKER_PLUGIN_SOURCE` | `github.com/electrocucaracha/utm` | Packer plugin source used for UTM builds. Override to test another compatible fork or release source. |
-| `UTM_PACKER_PLUGIN_VERSION` | `v4.0.3` | Version of the forked UTM Packer plugin installed for UTM builds. |
-| `DISTROS`      | `ubuntu2204 ubuntu2404` | Comma- or space-separated list of distro identifiers to build. Supported values are `ubuntu2204` and `ubuntu2404`. |
-| `PROVIDERS`    | `libvirt virtualbox`    | Comma- or space-separated list of providers to build. Supported values are `libvirt`, `virtualbox`, and `utm`.     |
+| Name                         | Default value                     | Description                                                                                                           |
+| ---------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `DEBUG`                      | `false`                           | Enables shell tracing with `set -o xtrace` when set to `true`.                                                        |
+| `OUTPUT_ROOT`                | `${SCRIPT_DIR}/dist`              | Root directory where published box artifacts and `metadata.json` files are written.                                   |
+| `WORK_DIR`                   | `${SCRIPT_DIR}/output`            | Working directory used for intermediate build artifacts before they are moved to the publish directory.               |
+| `VERSION`                    | `4.3.12`                          | Box version embedded in generated box filenames and metadata.                                                         |
+| `BOX_BASE_URL`               | empty                             | Base URL used in generated metadata box URLs. When unset, metadata uses local `file://` URLs.                         |
+| `DEPLOY_WWW`                 | `false`                           | When set to `true`, copies the published `${BOX_NAMESPACE}` tree into `WWW_ROOT` after the build finishes.            |
+| `WWW_ROOT`                   | `/var/www`                        | Destination root used when `DEPLOY_WWW=true`. The build publishes into `${WWW_ROOT}/${BOX_NAMESPACE}`.                |
+| `PACKER_GETTER_READ_TIMEOUT` | `90m`                             | Read timeout used by Packer's downloader for large remote assets such as Ubuntu ISOs. Increase it on slower networks. |
+| `UTM_PACKER_PLUGIN_SOURCE`   | `github.com/electrocucaracha/utm` | Packer plugin source used for UTM builds. Override to test another compatible fork or release source.                 |
+| `UTM_PACKER_PLUGIN_VERSION`  | `v4.0.3`                          | Version of the forked UTM Packer plugin installed for UTM builds.                                                     |
+| `DISTROS`                    | `ubuntu2204 ubuntu2404`           | Comma- or space-separated list of distro identifiers to build. Supported values are `ubuntu2204` and `ubuntu2404`.    |
+| `PROVIDERS`                  | `libvirt virtualbox`              | Comma- or space-separated list of providers to build. Supported values are `libvirt`, `virtualbox`, and `utm`.        |

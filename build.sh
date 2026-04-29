@@ -41,8 +41,8 @@ function _parse_list() {
 	printf '%s\n' "${values[@]}"
 }
 
-DISTROS=($(_parse_list "${DISTROS:-ubuntu2204 ubuntu2404}"))
-PROVIDERS=($(_parse_list "${PROVIDERS:-libvirt virtualbox}"))
+mapfile -t DISTROS < <(_parse_list "${DISTROS:-ubuntu2204 ubuntu2404}")
+mapfile -t PROVIDERS < <(_parse_list "${PROVIDERS:-libvirt virtualbox}")
 
 BUILT_KEYS=()
 BUILT_BOXES=()
@@ -99,8 +99,8 @@ function _record_built_box() {
 	local index=
 
 	if index=$(_find_built_box_index "${key}"); then
-		BUILT_BOXES[${index}]="${box_path}"
-		BUILT_CHECKSUMS[${index}]="${checksum_path}"
+		BUILT_BOXES[index]="${box_path}"
+		BUILT_CHECKSUMS[index]="${checksum_path}"
 		return
 	fi
 

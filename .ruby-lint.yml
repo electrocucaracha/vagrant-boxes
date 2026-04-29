@@ -3,4 +3,6 @@ AllCops:
 Naming/FileName:
   Exclude:
     - tpl/generic-ubuntu2204.rb
+    - tpl/generic-ubuntu2204-utm.rb
     - tpl/generic-ubuntu2404.rb
+    - tpl/generic-ubuntu2404-utm.rb

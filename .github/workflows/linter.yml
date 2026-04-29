@@ -1,3 +1,4 @@
+---
 # SPDX-license-identifier: Apache-2.0
 ##############################################################################
 # Copyright (c) 2026
@@ -7,8 +8,7 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 name: Lint Code Base
-# yamllint disable-line rule:truthy
-on:
+"on":
   push:
   pull_request:
 permissions: read-all
@@ -69,7 +69,12 @@ jobs:
         id: get-failed-linters
         if: failure()
         run: |
-          find ./super-linter-output/super-linter/ -name '*.json' -exec sh -c 'jq -e ".Exitval != 0" "$1" >/dev/null && printf "%s\0" "$1"' _ {} \; | xargs -0 jq -s '.' > linter-errors.json
+          find ./super-linter-output/super-linter/ \
+            -name '*.json' \
+            -exec sh -c \
+            'jq -e ".Exitval != 0" "$1" >/dev/null && printf "%s\0" "$1"' \
+            _ {} \; \
+            | xargs -0 jq -s '.' > linter-errors.json
       - uses: actions/ai-inference@af6ad2c4ac4edf01884054fc3a6caa6d2567c13a # 2.0.8
         id: ai-linter-analysis
         if: failure()
@@ -79,18 +84,33 @@ jobs:
             diff: ${{ steps.git-diff.outputs.raw-diff }}
           prompt-file: ./linter-errors.json
           system-prompt: |
-            You are an expert software engineer who specializes in diagnosing and fixing software build and runtime failures. Always provide structured reasoning and propose concrete fixes when possible.
+            You are an expert software engineer who specializes in
+            diagnosing and fixing software build and runtime failures.
+            Always provide structured reasoning and propose concrete fixes
+            when possible.
 
-            Task: Analyze the logs of the super-linter-output/ folder from the failed `ubuntu-latest` CI workflow run. Cross-reference the errors with the code diff to determine the root cause of the failure.
+            Task: Analyze the logs of the super-linter-output/ folder from
+            the failed `ubuntu-latest` CI workflow run. Cross-reference the
+            errors with the code diff to determine the root cause of the
+            failure.
             {{ diff }}
 
             Objectives:
-            1. **Diagnosis:** Identify patterns, anomalies, or dependencies that could explain the failure. What is the most probable root cause?
-            2. **Reasoning:** Explain why this root cause is plausible — referencing specific log lines, timestamps, or stack traces.
-            3. **Resolution:** If a fix is evident, describe your reasoning process and propose an exact code or configuration change. Present your solution as a unified diff (diff format).
-            4. **Reflection:** If no clear fix is identifiable, summarize which parts of the log are ambiguous and what further information would be needed to proceed.
+            1. **Diagnosis:** Identify patterns, anomalies, or dependencies
+            that could explain the failure. What is the most probable root
+            cause?
+            2. **Reasoning:** Explain why this root cause is plausible,
+            referencing specific log lines, timestamps, or stack traces.
+            3. **Resolution:** If a fix is evident, describe your reasoning
+            process and propose an exact code or configuration change.
+            Present your solution as a unified diff (diff format).
+            4. **Reflection:** If no clear fix is identifiable, summarize
+            which parts of the log are ambiguous and what further
+            information would be needed to proceed.
 
-            Goal: Deliver an insightful and technically sound explanation that not only solves the issue but also strengthens understanding of the system's behavior and failure patterns.
+            Goal: Deliver an insightful and technically sound explanation
+            that not only solves the issue but also strengthens
+            understanding of the system's behavior and failure patterns.
           # jscpd:ignore-start
       - name: Get the entire analysis output
         id: get-analysis-output
@@ -109,12 +129,15 @@ jobs:
         if: failure()
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          title-template: "super-linter GitHub action has failed"
+          title-template: >-
+            super-linter GitHub action has failed
           label-name: super-linter-issue
           body-template: |
-            The linter step has failed. Please check for new major versions and update manually.
+            The linter step has failed. Please check for new major versions
+            and update manually.
 
-            Please check the [logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for more details.
+            Please check workflow run `${{ github.run_id }}` for more
+            details.
 
             ## AI Analysis of Linter Failures
             ${{ steps.get-analysis-output.outputs.response }}
