@@ -61,12 +61,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINTER_RULES_PATH: /
           SAVE_SUPER_LINTER_OUTPUT: true
-          USE_FIND_ALGORITHM: true
-          VALIDATE_ALL_CODEBASE: true
-          VALIDATE_BASH_EXEC: false
-          VALIDATE_BIOME_FORMAT: false
-          VALIDATE_GIT_COMMITLINT: false
-          VALIDATE_JSCPD: false
           DEFAULT_BRANCH: ${{ github.head_ref || github.ref_name }}
       - uses: GrantBirki/git-diff-action@b27608d18e6dd9b31b46ede56a93e045d3881a28 # 3.0.0
         id: git-diff

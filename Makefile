@@ -19,10 +19,6 @@ lint:
 	-e RUN_LOCAL=true \
 	-e USE_FIND_ALGORITHM=true \
 	-e VALIDATE_ALL_CODEBASE=true \
-	-e VALIDATE_BASH_EXEC=false \
-	-e VALIDATE_BIOME_FORMAT=false \
-	-e VALIDATE_GIT_COMMITLINT=false \
-	-e VALIDATE_JSCPD=false \
 	-e LINTER_RULES_PATH=/ \
 	ghcr.io/super-linter/super-linter
 

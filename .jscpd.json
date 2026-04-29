@@ -1,0 +1,10 @@
+{
+  "threshold": 0,
+  "ignore": [
+    "**/dist/**",
+    "**/generic-*.json",
+    "**/scripts/ubuntu2204/**",
+    "**/scripts/ubuntu2404/**",
+    "**/tpl/generic-ubuntu*.rb"
+  ]
+}
