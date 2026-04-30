@@ -93,4 +93,46 @@ Describe 'build.sh'
       The status should be success
     End
   End
+
+  Describe 'Packer autoinstall sources'
+    builder_boot_command() {
+      local template_path=${1:?template is required}
+      local builder_name=${2:?builder name is required}
+
+      jq -r \
+        --arg builder_name "$builder_name" \
+        '.builders[] | select(.name == $builder_name) | .boot_command | join("")' \
+        "$template_path"
+    }
+
+    It 'uses distro-specific NoCloud data for the Ubuntu 22.04 VirtualBox build'
+      When call builder_boot_command generic-virtualbox-x64.json generic-ubuntu2204-virtualbox-x64
+      The output should include 'ds=nocloud-net\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2204/'
+    End
+
+    It 'uses distro-specific NoCloud data for the Ubuntu 24.04 VirtualBox build'
+      When call builder_boot_command generic-virtualbox-x64.json generic-ubuntu2404-virtualbox-x64
+      The output should include 'ds=nocloud-net\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2404/'
+    End
+
+    It 'uses distro-specific NoCloud data for the Ubuntu 22.04 libvirt build'
+      When call builder_boot_command generic-libvirt-x64.json generic-ubuntu2204-libvirt-x64
+      The output should include 'ds=nocloud-net\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2204/'
+    End
+
+    It 'uses distro-specific NoCloud data for the Ubuntu 24.04 libvirt build'
+      When call builder_boot_command generic-libvirt-x64.json generic-ubuntu2404-libvirt-x64
+      The output should include 'ds=nocloud-net\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2404/'
+    End
+
+    It 'uses UTM-specific NoCloud data for the Ubuntu 22.04 UTM build'
+      When call builder_boot_command generic-utm-arm64.json generic-ubuntu2204-utm-arm64
+      The output should include 'ds=nocloud-net\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2204-utm/'
+    End
+
+    It 'uses UTM-specific NoCloud data for the Ubuntu 24.04 UTM build'
+      When call builder_boot_command generic-utm-arm64.json generic-ubuntu2404-utm-arm64
+      The output should include 'ds=nocloud-net\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2404-utm/'
+    End
+  End
 End

@@ -1,2 +1,2 @@
-instance-id: generic-ubuntu2204-utm-arm64
+instance-id: generic-ubuntu2204
 local-hostname: ubuntu2204.localdomain

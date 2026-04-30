@@ -50,6 +50,8 @@ If a prior UTM build left behind a VM with the same generated name, `build.sh` r
 
 UTM builds use the forked `electrocucaracha/packer-plugin-utm` release `v4.0.3`, which carries the ISO-first boot-order fix and waits for autoinstall to power off before ejecting the installer ISO and rebooting from the installed disk.
 
+The libvirt and VirtualBox builders now use the distro-specific `http/ubuntu2204/`, `http/ubuntu2404/` NoCloud sources that continue booting into the installed system for provisioning, while UTM uses separate `-utm` variants that still power off after autoinstall for the plugin handoff.
+
 ```bash
 PROVIDERS=utm ./build.sh
 ```

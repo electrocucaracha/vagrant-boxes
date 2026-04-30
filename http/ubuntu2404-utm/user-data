@@ -36,12 +36,13 @@ autoinstall:
           name: lvm
   identity:
       username: root
-      hostname: ubuntu2204.localdomain
+      hostname: ubuntu2404.localdomain
       password: "$6$RsFnUPD4Axp9Y9yQ$jPjBajFAlATEBb8wa.xmvGimRz8I9vQgfGLWyuBOcqcyLxgt23KrsVWS3khrH19i6oqdMi75L0UYgWkkmHEyw/"
   ssh:
       install-server: yes
       authorized-keys: []
       allow-pw: yes
+  shutdown: poweroff
   user-data:
       disable_root: false
   packages:

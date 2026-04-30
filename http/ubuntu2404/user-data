@@ -42,7 +42,6 @@ autoinstall:
       install-server: yes
       authorized-keys: []
       allow-pw: yes
-  shutdown: poweroff
   user-data:
       disable_root: false
   packages:
