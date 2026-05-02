@@ -48,9 +48,9 @@ UTM builds are available by selecting `utm` explicitly in `PROVIDERS`. Those bui
 
 If a prior UTM build left behind a VM with the same generated name, `build.sh` removes that stale VM before retrying the build.
 
-UTM builds use the forked `electrocucaracha/packer-plugin-utm` release `v4.0.3`, which carries the ISO-first boot-order fix and waits for autoinstall to power off before ejecting the installer ISO and rebooting from the installed disk.
+UTM builds use the forked `electrocucaracha/packer-plugin-utm` release `v4.0.3`, but they now avoid the plugin's flaky VNC-driven ISO install path. Instead, the UTM template imports the official Ubuntu arm64 cloud image for each distro and injects root login settings through a local `cidata` cloud-init seed.
 
-The libvirt and VirtualBox builders now use the distro-specific `http/ubuntu2204/`, `http/ubuntu2404/` NoCloud sources that continue booting into the installed system for provisioning, while UTM uses separate `-utm` variants that still power off after autoinstall for the plugin handoff.
+The libvirt and VirtualBox builders continue using the distro-specific `http/ubuntu2204/` and `http/ubuntu2404/` NoCloud sources for unattended ISO installs. The UTM-specific `http/ubuntu2204-utm/` and `http/ubuntu2404-utm/` directories are now consumed as cloud-init seed media, including a dedicated `network-config` file for the cloud-image workflow.
 
 ```bash
 PROVIDERS=utm ./build.sh

@@ -1,79 +1,23 @@
 #cloud-config
-autoinstall:
-  version: 1
-  refresh-installer:
-    update: no
-  locale: en_US.UTF-8
-  keyboard:
-      layout: us
-      variant: ""
-      toggle: ""
-  network:
-      network:
-          version: 2
-          ethernets:
-              eth0:
-                  dhcp4: yes
-                  dhcp6: no
-                  dhcp4-overrides:
-                      route-metric: 100
-              eth1:
-                  dhcp4: yes
-                  dhcp6: no
-                  optional: true
-                  dhcp4-overrides:
-                      route-metric: 200
-  apt:
-      geoip: false
-      primary:
-          - arches: [default]
-            uri: https://mirrors.edge.kernel.org/ubuntu/
-      security:
-          - arches: [default]
-            uri: https://mirrors.edge.kernel.org/ubuntu/
-  storage:
-      layout:
-          name: lvm
-  identity:
-      username: root
-      hostname: ubuntu2404.localdomain
-      password: "$6$RsFnUPD4Axp9Y9yQ$jPjBajFAlATEBb8wa.xmvGimRz8I9vQgfGLWyuBOcqcyLxgt23KrsVWS3khrH19i6oqdMi75L0UYgWkkmHEyw/"
-  ssh:
-      install-server: yes
-      authorized-keys: []
-      allow-pw: yes
-  shutdown: poweroff
-  user-data:
-      disable_root: false
-  packages:
-      - sed
-      - curl
-      - sudo
-      - openssh-server
-  output:
-    init: "> /var/log/cloud-init.log"
-    config: [ ">> /tmp/foo.out", "> /var/log/cloud-config.log" ]
-    final:
-      output: "| tee /tmp/final.stdout | tee /var/log/cloud-final.log"
-      error: "&1"
-  final_message: "System installation complete."
-  write_files:
-    - encoding: b64
-      content: W01hdGNoXQpOYW1lPWV0aDAKCltOZXR3b3JrXQpESENQPWlwdjQK
-      owner: root:root
-      path: /etc/systemd/network/eth0.network
-      permissions: '0644'
-  early-commands:
-    - systemctl stop ssh
-    - sed -i "s/#Cache=.*/Cache=yes/g" /etc/systemd/resolved.conf
-    - sed -i "s/#DNS=.*/DNS=4.2.2.1 4.2.2.2 208.67.220.220/g" /etc/systemd/resolved.conf
-    - sed -i "s/#FallbackDNS=.*/FallbackDNS=4.2.2.1 4.2.2.2 208.67.220.220/g" /etc/systemd/resolved.conf
-    - systemctl restart systemd-resolved
-  late-commands:
-    - sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"$/GRUB_CMDLINE_LINUX_DEFAULT="\1 net.ifnames=0 biosdevname=0"/g' /target/etc/default/grub
-    - sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=" net.ifnames/GRUB_CMDLINE_LINUX_DEFAULT="net.ifnames/g' /target/etc/default/grub
-    - printf 'PermitRootLogin yes\nPasswordAuthentication yes\n' > /target/etc/ssh/sshd_config.d/99-packer.conf
-    - curtin in-target --target=/target -- /bin/bash -c 'id -u vagrant >/dev/null 2>&1 || /usr/sbin/useradd --create-home --shell /bin/bash vagrant'
-    - curtin in-target --target=/target -- /bin/bash -c "echo 'vagrant:vagrant' | chpasswd"
-    - curtin in-target --target=/target -- /bin/bash -c "echo 'root:vagrant' | chpasswd"
-    - curtin in-target --target=/target -- update-grub
+disable_root: false
+ssh_pwauth: true
+hostname: ubuntu2404.localdomain
+package_update: false
+package_upgrade: false
+users:
+  - name: root
+    lock_passwd: false
+chpasswd:
+  expire: false
+  users:
+    - name: root
+      password: vagrant
+      type: text
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-packer.conf
+    permissions: "0644"
+    content: |
+      PermitRootLogin yes
+      PasswordAuthentication yes
+runcmd:
+  - systemctl restart ssh || systemctl restart sshd

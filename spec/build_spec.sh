@@ -25,6 +25,18 @@ Describe 'build.sh'
       When call _parse_list "ubuntu2204,ubuntu2404 utm"
       The output should equal "$(result)"
     End
+
+    It 'preserves DISTROS and PROVIDERS environment overrides when sourcing build.sh'
+      expected() { %text
+        #|providers=utm
+        #|distros=ubuntu2404
+      }
+
+      # shellcheck disable=SC2016
+      When run bash -c 'export PROVIDERS=utm DISTROS=ubuntu2404; . ./build.sh; printf "providers=%s\ndistros=%s\n" "${PROVIDERS[*]}" "${DISTROS[*]}"'
+      The status should be success
+      The output should equal "$(expected)"
+    End
   End
 
   Describe '_box_url'
@@ -45,6 +57,26 @@ Describe 'build.sh'
 
       When call _box_url ubuntu2204 "$box_file"
       The output should equal "https://example.invalid/releases/generic/ubuntu2204/example.box"
+    End
+  End
+
+  Describe '_ensure_packer_plugin'
+    It 'does not reinstall a plugin when the requested v-prefixed version is already installed'
+      packer() {
+        case "$1 $2" in
+          "plugins installed")
+            echo "/tmp/github.com/electrocucaracha/utm/packer-plugin-utm_v4.0.3_x5.0_darwin_arm64"
+            ;;
+          "plugins install")
+            echo "unexpected install"
+            return 1
+            ;;
+        esac
+      }
+
+      When call _ensure_packer_plugin github.com/electrocucaracha/utm v4.0.3
+      The status should be success
+      The output should equal ""
     End
   End
 
@@ -124,15 +156,91 @@ Describe 'build.sh'
       When call builder_boot_command generic-libvirt-x64.json generic-ubuntu2404-libvirt-x64
       The output should include 'ds=nocloud-net\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2404/'
     End
+  End
 
-    It 'uses UTM-specific NoCloud data for the Ubuntu 22.04 UTM build'
-      When call builder_boot_command generic-utm-arm64.json generic-ubuntu2204-utm-arm64
-      The output should include 'ds=nocloud-net\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2204-utm/'
+  Describe 'UTM cloud image sources'
+    builder_field() {
+      local template_path=${1:?template is required}
+      local builder_name=${2:?builder name is required}
+      local field_name=${3:?field name is required}
+
+      jq -r \
+        --arg builder_name "$builder_name" \
+        --arg field_name "$field_name" \
+        '.builders[] | select(.name == $builder_name) | .[$field_name]' \
+        "$template_path"
+    }
+
+    builder_cd_files() {
+      local template_path=${1:?template is required}
+      local builder_name=${2:?builder name is required}
+
+      jq -r \
+        --arg builder_name "$builder_name" \
+        '.builders[] | select(.name == $builder_name) | .cd_files | join(",")' \
+        "$template_path"
+    }
+
+    It 'attaches the Ubuntu 22.04 cloud-init seed media for the UTM build'
+      When call builder_cd_files generic-utm-arm64.json generic-ubuntu2204-utm-arm64
+      The output should equal 'http/ubuntu2204-utm/user-data,http/ubuntu2204-utm/meta-data,http/ubuntu2204-utm/network-config'
     End
 
-    It 'uses UTM-specific NoCloud data for the Ubuntu 24.04 UTM build'
-      When call builder_boot_command generic-utm-arm64.json generic-ubuntu2404-utm-arm64
-      The output should include 'ds=nocloud-net\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu2404-utm/'
+    It 'uses the cloud builder for the Ubuntu 22.04 UTM build'
+      When call builder_field generic-utm-arm64.json generic-ubuntu2204-utm-arm64 type
+      The output should equal 'utm-cloud'
+    End
+
+    It 'uses the Jammy arm64 cloud image for the Ubuntu 22.04 UTM build'
+      When call builder_field generic-utm-arm64.json generic-ubuntu2204-utm-arm64 iso_url
+      The output should equal 'https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img'
+    End
+
+    It 'uses the cloud builder for the Ubuntu 24.04 UTM build'
+      When call builder_field generic-utm-arm64.json generic-ubuntu2404-utm-arm64 type
+      The output should equal 'utm-cloud'
+    End
+
+    It 'uses the Noble arm64 cloud image for the Ubuntu 24.04 UTM build'
+      When call builder_field generic-utm-arm64.json generic-ubuntu2404-utm-arm64 iso_url
+      The output should equal 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64.img'
+    End
+
+    It 'attaches the Ubuntu 24.04 cloud-init seed media for the UTM build'
+      When call builder_cd_files generic-utm-arm64.json generic-ubuntu2404-utm-arm64
+      The output should equal 'http/ubuntu2404-utm/user-data,http/ubuntu2404-utm/meta-data,http/ubuntu2404-utm/network-config'
+    End
+  End
+
+  Describe 'UTM cloud-init seeds'
+    It 'unlocks root for the Ubuntu 22.04 UTM seed'
+      When run grep -Eq '^users:|^  - name: root$|^    lock_passwd: false$' http/ubuntu2204-utm/user-data
+      The status should be success
+    End
+
+    It 'sets a plaintext root password for the Ubuntu 22.04 UTM seed'
+      When run grep -Eq '^chpasswd:|^  users:$|^    - name: root$|^      password: vagrant$|^      type: text$' http/ubuntu2204-utm/user-data
+      The status should be success
+    End
+
+    It 'provides separate NoCloud network config for Ubuntu 22.04 UTM'
+      When run grep -Eq '^version: 2$|name: \"en\\*\"|name: \"eth\\*\"|dhcp4: true' http/ubuntu2204-utm/network-config
+      The status should be success
+    End
+
+    It 'unlocks root for the Ubuntu 24.04 UTM seed'
+      When run grep -Eq '^users:|^  - name: root$|^    lock_passwd: false$' http/ubuntu2404-utm/user-data
+      The status should be success
+    End
+
+    It 'sets a plaintext root password for the Ubuntu 24.04 UTM seed'
+      When run grep -Eq '^chpasswd:|^  users:$|^    - name: root$|^      password: vagrant$|^      type: text$' http/ubuntu2404-utm/user-data
+      The status should be success
+    End
+
+    It 'provides separate NoCloud network config for Ubuntu 24.04 UTM'
+      When run grep -Eq '^version: 2$|name: \"en\\*\"|name: \"eth\\*\"|dhcp4: true' http/ubuntu2404-utm/network-config
+      The status should be success
     End
   End
 End

@@ -8,6 +8,7 @@
 ##############################################################################
 
 DOCKER_CMD ?= $(shell which docker 2> /dev/null || which podman 2> /dev/null || echo docker)
+SUDO_CMD ?=
 
 test:
 	@command -v shellspec > /dev/null || curl -fsSL https://git.io/shellspec | sh -s -- --yes
@@ -15,7 +16,7 @@ test:
 
 .PHONY: lint
 lint:
-	sudo -E $(DOCKER_CMD) run --rm -v $$(pwd):/tmp/lint \
+	$(SUDO_CMD) $(DOCKER_CMD) run --rm -v $$(pwd):/tmp/lint --platform linux/amd64 \
 	-e RUN_LOCAL=true \
 	-e USE_FIND_ALGORITHM=true \
 	-e VALIDATE_ALL_CODEBASE=true \

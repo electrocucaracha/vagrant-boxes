@@ -41,8 +41,18 @@ function _parse_list() {
 	printf '%s\n' "${values[@]}"
 }
 
-mapfile -t DISTROS < <(_parse_list "${DISTROS:-ubuntu2204 ubuntu2404}")
-mapfile -t PROVIDERS < <(_parse_list "${PROVIDERS:-libvirt virtualbox}")
+DISTRO_LIST=${DISTROS:-ubuntu2204 ubuntu2404}
+PROVIDER_LIST=${PROVIDERS:-libvirt virtualbox}
+
+DISTROS=()
+while IFS= read -r distro; do
+	DISTROS+=("${distro}")
+done < <(_parse_list "${DISTRO_LIST}")
+
+PROVIDERS=()
+while IFS= read -r provider; do
+	PROVIDERS+=("${provider}")
+done < <(_parse_list "${PROVIDER_LIST}")
 
 BUILT_KEYS=()
 BUILT_BOXES=()
@@ -140,11 +150,13 @@ function _ensure_packer_plugin() {
 	local plugin=${1:?plugin is required}
 	local version=${2:-}
 	local installed_plugins=
+	local normalized_version=
 
 	installed_plugins=$(packer plugins installed 2>/dev/null || true)
+	normalized_version=${version#v}
 
 	if grep -q "${plugin}" <<<"${installed_plugins}" &&
-		([[ -z ${version} ]] || grep -q "_${version#v}_" <<<"${installed_plugins}"); then
+		([[ -z ${version} ]] || grep -Eq "_v?${normalized_version//./\\.}_" <<<"${installed_plugins}"); then
 		return
 	fi
 
