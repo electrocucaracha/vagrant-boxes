@@ -21,6 +21,7 @@ The repository provides a repeatable way to create ready-to-use Vagrant boxes fo
 
 - Ubuntu 22.04
 - Ubuntu 24.04
+- Ubuntu 26.04
 
 The build flow is intentionally narrow in scope so the supported outputs are easier to maintain, validate, and publish.
 
@@ -40,9 +41,15 @@ Run:
 ./build.sh
 ```
 
-By default this builds Ubuntu 22.04 and 24.04 boxes for the `libvirt` and `virtualbox` providers and writes the published artifacts under `dist/generic/`.
+By default this builds Ubuntu 22.04, 24.04, and 26.04 boxes for the `libvirt` and `virtualbox` providers and writes the published artifacts under `dist/generic/`.
 
 Deployment to `/var/www` is disabled by default. Enable it explicitly with `DEPLOY_WWW=true` if you want `build.sh` to mirror the published artifacts into a web root after the build completes.
+
+If `WWW_ROOT` requires elevated permissions, set `SUDO_CMD` for the deploy step:
+
+```bash
+SUDO_CMD=sudo DEPLOY_WWW=true ./build.sh
+```
 
 UTM builds are available by selecting `utm` explicitly in `PROVIDERS`. Those builds target Ubuntu arm64 on macOS and emit boxes for the `vagrant_utm` provider plugin.
 
@@ -50,7 +57,7 @@ If a prior UTM build left behind a VM with the same generated name, `build.sh` r
 
 UTM builds use the forked `electrocucaracha/packer-plugin-utm` release `v4.0.3`, but they now avoid the plugin's flaky VNC-driven ISO install path. Instead, the UTM template imports the official Ubuntu arm64 cloud image for each distro and injects root login settings through a local `cidata` cloud-init seed.
 
-The libvirt and VirtualBox builders continue using the distro-specific `http/ubuntu2204/` and `http/ubuntu2404/` NoCloud sources for unattended ISO installs. The UTM-specific `http/ubuntu2204-utm/` and `http/ubuntu2404-utm/` directories are now consumed as cloud-init seed media, including a dedicated `network-config` file for the cloud-image workflow.
+The libvirt and VirtualBox builders continue using the distro-specific `http/ubuntu2204/`, `http/ubuntu2404/`, and `http/ubuntu2604/` NoCloud sources for unattended ISO installs. The UTM-specific `http/ubuntu2204-utm/`, `http/ubuntu2404-utm/`, and `http/ubuntu2604-utm/` directories are now consumed as cloud-init seed media, including a dedicated `network-config` file for the cloud-image workflow.
 
 ```bash
 PROVIDERS=utm ./build.sh
@@ -74,17 +81,18 @@ make test
 
 ### `build.sh` environment variables
 
-| Name                         | Default value                     | Description                                                                                                           |
-| ---------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `DEBUG`                      | `false`                           | Enables shell tracing with `set -o xtrace` when set to `true`.                                                        |
-| `OUTPUT_ROOT`                | `${SCRIPT_DIR}/dist`              | Root directory where published box artifacts and `metadata.json` files are written.                                   |
-| `WORK_DIR`                   | `${SCRIPT_DIR}/output`            | Working directory used for intermediate build artifacts before they are moved to the publish directory.               |
-| `VERSION`                    | `4.3.12`                          | Box version embedded in generated box filenames and metadata.                                                         |
-| `BOX_BASE_URL`               | empty                             | Base URL used in generated metadata box URLs. When unset, metadata uses local `file://` URLs.                         |
-| `DEPLOY_WWW`                 | `false`                           | When set to `true`, copies the published `${BOX_NAMESPACE}` tree into `WWW_ROOT` after the build finishes.            |
-| `WWW_ROOT`                   | `/var/www`                        | Destination root used when `DEPLOY_WWW=true`. The build publishes into `${WWW_ROOT}/${BOX_NAMESPACE}`.                |
-| `PACKER_GETTER_READ_TIMEOUT` | `90m`                             | Read timeout used by Packer's downloader for large remote assets such as Ubuntu ISOs. Increase it on slower networks. |
-| `UTM_PACKER_PLUGIN_SOURCE`   | `github.com/electrocucaracha/utm` | Packer plugin source used for UTM builds. Override to test another compatible fork or release source.                 |
-| `UTM_PACKER_PLUGIN_VERSION`  | `v4.0.3`                          | Version of the forked UTM Packer plugin installed for UTM builds.                                                     |
-| `DISTROS`                    | `ubuntu2204 ubuntu2404`           | Comma- or space-separated list of distro identifiers to build. Supported values are `ubuntu2204` and `ubuntu2404`.    |
-| `PROVIDERS`                  | `libvirt virtualbox`              | Comma- or space-separated list of providers to build. Supported values are `libvirt`, `virtualbox`, and `utm`.        |
+| Name                         | Default value                      | Description                                                                                                                       |
+| ---------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `DEBUG`                      | `false`                            | Enables shell tracing with `set -o xtrace` when set to `true`.                                                                    |
+| `OUTPUT_ROOT`                | `${SCRIPT_DIR}/dist`               | Root directory where published box artifacts and `metadata.json` files are written.                                               |
+| `WORK_DIR`                   | `${SCRIPT_DIR}/output`             | Working directory used for intermediate build artifacts before they are moved to the publish directory.                           |
+| `VERSION`                    | `4.3.12`                           | Box version embedded in generated box filenames and metadata.                                                                     |
+| `BOX_BASE_URL`               | empty                              | Base URL used in generated metadata box URLs. When unset, metadata uses local `file://` URLs.                                     |
+| `DEPLOY_WWW`                 | `false`                            | When set to `true`, copies the published `${BOX_NAMESPACE}` tree into `WWW_ROOT` after the build finishes.                        |
+| `WWW_ROOT`                   | `/var/www`                         | Destination root used when `DEPLOY_WWW=true`. The build publishes into `${WWW_ROOT}/${BOX_NAMESPACE}`.                            |
+| `SUDO_CMD`                   | empty                              | Optional privilege command used only for the deploy step, for example `sudo` or `sudo -n`, when `WWW_ROOT` is not writable.       |
+| `PACKER_GETTER_READ_TIMEOUT` | `90m`                              | Read timeout used by Packer's downloader for large remote assets such as Ubuntu ISOs. Increase it on slower networks.             |
+| `UTM_PACKER_PLUGIN_SOURCE`   | `github.com/electrocucaracha/utm`  | Packer plugin source used for UTM builds. Override to test another compatible fork or release source.                             |
+| `UTM_PACKER_PLUGIN_VERSION`  | `v4.0.3`                           | Version of the forked UTM Packer plugin installed for UTM builds.                                                                 |
+| `DISTROS`                    | `ubuntu2204 ubuntu2404 ubuntu2604` | Comma- or space-separated list of distro identifiers to build. Supported values are `ubuntu2204`, `ubuntu2404`, and `ubuntu2604`. |
+| `PROVIDERS`                  | `libvirt virtualbox`               | Comma- or space-separated list of providers to build. Supported values are `libvirt`, `virtualbox`, and `utm`.                    |

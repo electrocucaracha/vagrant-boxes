@@ -61,6 +61,34 @@
     },
     {
       "scripts": [
+        "scripts/ubuntu2604/apt.sh",
+        "scripts/ubuntu2604/floppy.sh",
+        "scripts/ubuntu2604/network.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "start_retry_timeout": "15m",
+      "expect_disconnect": "true",
+      "only": ["generic-ubuntu2604-utm-arm64"]
+    },
+    {
+      "scripts": [
+        "scripts/ubuntu2604/vagrant.sh",
+        "scripts/ubuntu2604/profile.sh",
+        "scripts/ubuntu2604/motd.sh",
+        "scripts/ubuntu2604/fixtty.sh",
+        "scripts/ubuntu2604/qemu.sh",
+        "scripts/ubuntu2604/cleanup.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "pause_before": "120s",
+      "start_retry_timeout": "15m",
+      "expect_disconnect": "true",
+      "only": ["generic-ubuntu2604-utm-arm64"]
+    },
+    {
+      "scripts": [
         "scripts/common/motd.sh",
         "scripts/common/keys.sh",
         "scripts/common/machine.sh",
@@ -136,6 +164,40 @@
       "export_nopause": true,
       "iso_url": "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64.img",
       "iso_checksum": "sha256:c7eff9b3ee6e7b212882e680a9e06cac939107fbf5298384340a0ad1c667a38a",
+      "ssh_username": "root",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_handshake_attempts": 1000,
+      "ssh_timeout": "3600s",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+      "guest_additions_mode": "disable"
+    },
+    {
+      "type": "utm-cloud",
+      "name": "generic-ubuntu2604-utm-arm64",
+      "vm_name": "generic-ubuntu2604-utm-arm64",
+      "output_directory": "output/generic-ubuntu2604-utm-arm64",
+      "vm_backend": "qemu",
+      "vm_arch": "aarch64",
+      "uefi_boot": true,
+      "hypervisor": true,
+      "disk_size": 131072,
+      "resize_cloud_image": true,
+      "hard_drive_interface": "virtio",
+      "cpus": 2,
+      "memory": 2048,
+      "use_cd": true,
+      "cd_label": "cidata",
+      "cd_files": [
+        "http/ubuntu2604-utm/user-data",
+        "http/ubuntu2604-utm/meta-data",
+        "http/ubuntu2604-utm/network-config"
+      ],
+      "display_nopause": true,
+      "boot_nopause": true,
+      "export_nopause": true,
+      "iso_url": "https://cloud-images.ubuntu.com/releases/26.04/release/ubuntu-26.04-server-cloudimg-arm64.img",
+      "iso_checksum": "sha256:9daa955c3d4cafc5a0c1c3fff51672b79a6bb36b5074b21eecddb696c5710dcb",
       "ssh_username": "root",
       "ssh_password": "vagrant",
       "ssh_port": 22,

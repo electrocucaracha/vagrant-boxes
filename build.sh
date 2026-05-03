@@ -16,6 +16,7 @@ BOX_NAMESPACE=generic
 BOX_BASE_URL=${BOX_BASE_URL:-}
 DEPLOY_WWW=${DEPLOY_WWW:-false}
 WWW_ROOT=${WWW_ROOT:-/var/www}
+SUDO_CMD=${SUDO_CMD:-}
 PACKER_GETTER_READ_TIMEOUT=${PACKER_GETTER_READ_TIMEOUT:-90m}
 UTM_PACKER_PLUGIN_SOURCE=${UTM_PACKER_PLUGIN_SOURCE:-github.com/electrocucaracha/utm}
 UTM_PACKER_PLUGIN_VERSION=${UTM_PACKER_PLUGIN_VERSION:-v4.0.3}
@@ -41,7 +42,7 @@ function _parse_list() {
 	printf '%s\n' "${values[@]}"
 }
 
-DISTRO_LIST=${DISTROS:-ubuntu2204 ubuntu2404}
+DISTRO_LIST=${DISTROS:-ubuntu2204 ubuntu2404 ubuntu2604}
 PROVIDER_LIST=${PROVIDERS:-libvirt virtualbox}
 
 DISTROS=()
@@ -62,6 +63,7 @@ function _get_description() {
 	case "$1" in
 	ubuntu2204) echo "Ubuntu Jammy 22.04" ;;
 	ubuntu2404) echo "Ubuntu Noble 24.04" ;;
+	ubuntu2604) echo "Ubuntu Resolute 26.04" ;;
 	*) echo "Unknown" ;;
 	esac
 }
@@ -183,7 +185,7 @@ function _assert_supported_distro() {
 	local distro=${1:?distro is required}
 
 	case "${distro}" in
-	ubuntu2204 | ubuntu2404) ;;
+	ubuntu2204 | ubuntu2404 | ubuntu2604) ;;
 	*)
 		echo "ERROR: Unsupported distro '${distro}'"
 		exit 1
@@ -423,6 +425,16 @@ function _deploy_www() {
 	fi
 
 	local deploy_dir="${WWW_ROOT%/}/${BOX_NAMESPACE}"
+
+	if [[ -n ${SUDO_CMD} ]]; then
+		# shellcheck disable=SC2086 # SUDO_CMD may include flags such as "sudo -n".
+		${SUDO_CMD} mkdir -p "${deploy_dir}"
+		# shellcheck disable=SC2086 # SUDO_CMD may include flags such as "sudo -n".
+		${SUDO_CMD} rm -rf "${deploy_dir:?}/"*
+		# shellcheck disable=SC2086 # SUDO_CMD may include flags such as "sudo -n".
+		${SUDO_CMD} cp -R "${OUTPUT_ROOT}/${BOX_NAMESPACE}/." "${deploy_dir}/"
+		return
+	fi
 
 	mkdir -p "${deploy_dir}"
 	rm -rf "${deploy_dir:?}/"*

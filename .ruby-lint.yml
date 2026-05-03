@@ -6,3 +6,5 @@ Naming/FileName:
     - tpl/generic-ubuntu2204-utm.rb
     - tpl/generic-ubuntu2404.rb
     - tpl/generic-ubuntu2404-utm.rb
+    - tpl/generic-ubuntu2604.rb
+    - tpl/generic-ubuntu2604-utm.rb

@@ -5,6 +5,7 @@
     "**/generic-*.json",
     "**/scripts/ubuntu2204/**",
     "**/scripts/ubuntu2404/**",
+    "**/scripts/ubuntu2604/**",
     "**/tpl/generic-ubuntu*.rb"
   ]
 }

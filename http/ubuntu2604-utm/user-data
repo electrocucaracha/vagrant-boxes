@@ -1,0 +1,23 @@
+#cloud-config
+disable_root: false
+ssh_pwauth: true
+hostname: ubuntu2604.localdomain
+package_update: false
+package_upgrade: false
+users:
+  - name: root
+    lock_passwd: false
+chpasswd:
+  expire: false
+  users:
+    - name: root
+      password: vagrant
+      type: text
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-packer.conf
+    permissions: "0644"
+    content: |
+      PermitRootLogin yes
+      PasswordAuthentication yes
+runcmd:
+  - systemctl restart ssh || systemctl restart sshd

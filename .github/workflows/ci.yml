@@ -1,4 +1,3 @@
----
 # SPDX-license-identifier: Apache-2.0
 ##############################################################################
 # Copyright (c) 2026
@@ -23,7 +22,9 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
           persist-credentials: false
+      # yamllint disable rule:line-length
       - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # 4.0.1
+        # yamllint enable rule:line-length
         id: filter
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -46,9 +47,7 @@ jobs:
           persist-credentials: false
       - name: Install ShellSpec
         run: >-
-          curl -fsSL
-          https://github.com/shellspec/shellspec/releases/latest/download/shellspec-dist.tar.gz
-          | tar -xz -C ..
+          curl -fsSL https://github.com/shellspec/shellspec/releases/latest/download/shellspec-dist.tar.gz | tar -xz -C ..
       - name: Run ShellSpec
         shell: 'script -q -e -c "bash {0}"'
         run: ../shellspec/shellspec --profile --xtrace
