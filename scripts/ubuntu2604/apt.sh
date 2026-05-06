@@ -54,7 +54,7 @@ if [ -f /usr/lib/ubuntu-release-upgrader/release-upgrade-motd ]; then
 	cat <<-EOF >/usr/lib/ubuntu-release-upgrader/release-upgrade-motd
 		#!/bin/sh
 		if [ -d /var/lib/ubuntu-release-upgrader/ ]; then
-		  date +%s > /var/lib/ubuntu-release-upgrader/release-upgrade-available 
+		  date +%s > /var/lib/ubuntu-release-upgrader/release-upgrade-available
 		fi
 		exit 0
 	EOF

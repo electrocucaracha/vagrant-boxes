@@ -21,11 +21,12 @@ fix the issue and run the relevant commands again.
 
 ## Repository conventions
 
-| Area       | Instruction                                                      |
-| ---------- | ---------------------------------------------------------------- |
-| Formatting | Use `make fmt` instead of formatting files manually.             |
-| Linting    | Use `make lint` and leave the repository without linting errors. |
-| Scope      | Make surgical changes and avoid unrelated edits.                 |
+- Use `make fmt` first.
+- Fix any formatter-produced linting issues manually before finishing.
+- Use `make lint`
+  and leave the repository without linting errors.
+- Make surgical changes
+  and avoid unrelated edits.
 
 ## Example completion checklist
 
