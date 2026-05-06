@@ -1,3 +1,4 @@
+---
 # SPDX-license-identifier: Apache-2.0
 ##############################################################################
 # Copyright (c) 2026
@@ -20,10 +21,13 @@ repos:
     hooks:
       - id: bashate
         # E005 file does not begin with #! or have a .sh prefix
+        # E002 and E003 shfmt emits tabs by default for shell indentation
         # E006 check for lines longer than 79 columns
+        # E011 shfmt may split if/elif conditions across multiple lines
+        # E020 shfmt formats functions as `name()` instead of `function name`
         # E042 local declaration hides errors
         # E043 Arithmetic compound has inconsistent return semantics
-        args: ["-v", "-iE006", "-iE005,E042,E043"]
+        args: ["-v", "-iE002,E003,E005,E006,E011,E020,E042,E043"]
         files: .*\.sh
         exclude: ".tox/.*"
   - repo: https://github.com/igorshubovych/markdownlint-cli
