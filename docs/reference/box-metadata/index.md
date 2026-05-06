@@ -1,7 +1,7 @@
 # Box metadata and artifact layout
 
-Each published distro directory contains a `metadata.json` file plus one or
-more provider-specific `.box` files and checksum files.
+Each published distro directory contains a `metadata.json` file
+plus one or more provider-specific `.box` files and checksum files.
 
 ## Published layout
 
@@ -63,5 +63,5 @@ Each provider entry records its architecture explicitly:
 - `libvirt` and `virtualbox` use `amd64`
 - `utm` uses `arm64`
 
-When a distro has both `amd64` and `arm64` provider entries, the metadata marks
-the `amd64` entry as the default architecture.
+When a distro has both `amd64` and `arm64` provider entries,
+the metadata marks the `amd64` entry as the default architecture.

@@ -43,6 +43,6 @@ vagrant ssh
 
 ## Notes
 
-- UTM support is opt-in at build time, so only published UTM artifacts can be
-  consumed with `--provider=utm`.
+- UTM support is opt-in at build time,
+  so only published UTM artifacts can be consumed with `--provider=utm`.
 - The UTM boxes are intended for Ubuntu arm64 guests on macOS hosts.

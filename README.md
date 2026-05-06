@@ -13,8 +13,8 @@
 
 ## Overview
 
-This repository produces Ubuntu Vagrant base boxes for the `libvirt`,
-`virtualbox`, and `utm` providers.
+This repository produces Ubuntu Vagrant base boxes
+for the `libvirt`, `virtualbox`, and `utm` providers.
 
 It focuses on a small, maintained set of Ubuntu releases:
 
@@ -24,13 +24,16 @@ It focuses on a small, maintained set of Ubuntu releases:
 
 ## Benefits
 
-- **Repeatable builds**: the same templates and provisioning flow can be used
-  every time a box is rebuilt.
-- **Provider-ready artifacts**: published outputs include `.box` files,
-  checksums, and Vagrant `metadata.json`.
-- **Consistent guests**: the boxes apply the same user, networking, cleanup,
+- **Repeatable builds**:
+  the same templates and provisioning flow can be used every time a box is rebuilt.
+- **Provider-ready artifacts**:
+  published outputs include `.box` files, checksums, and Vagrant `metadata.json`.
+- **Consistent guests**:
+  the boxes apply the same user, networking, cleanup,
   and packaging behavior across providers.
-- **Smaller maintenance surface**: the project keeps a narrow distro and
-  provider matrix so the outputs stay easier to validate and publish.
-- **Flexible distribution**: artifacts can be consumed from local `file://`
-  metadata or a hosted base URL.
+- **Smaller maintenance surface**:
+  the project keeps a narrow distro and provider matrix
+  so the outputs stay easier to validate and publish.
+- **Flexible distribution**:
+  artifacts can be consumed from local `file://` metadata
+  or a hosted base URL.

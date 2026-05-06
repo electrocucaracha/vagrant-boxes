@@ -1,12 +1,13 @@
 # Get started with a published box
 
-This tutorial walks through a first successful Vagrant workflow with one of the
-published boxes.
+This tutorial walks through a first successful Vagrant workflow
+with one of the published boxes.
 
 ## Goal
 
-Start an Ubuntu VM from published box metadata, connect to it with Vagrant, and
-clean it up when you are done.
+Start an Ubuntu VM from published box metadata,
+connect to it with Vagrant,
+and clean it up when you are done.
 
 ## Before you begin
 
@@ -16,8 +17,8 @@ You need:
 - the provider you want to use already installed on your host
 - access to a published `metadata.json` URL for one of the boxes
 
-This example uses the `ubuntu-noble` box name and the `libvirt` provider. Swap
-them for the published box and provider you want to use.
+This example uses the `ubuntu-noble` box name and the `libvirt` provider.
+Swap them for the published box and provider you want to use.
 
 ## 1. Add the box from its metadata
 
@@ -25,8 +26,8 @@ them for the published box and provider you want to use.
 vagrant box add https://<host>/electrocucaracha-boxes/ubuntu-noble/metadata.json
 ```
 
-Vagrant reads the metadata file and selects the provider-specific artifact for
-the provider you use later.
+Vagrant reads the metadata file
+and selects the provider-specific artifact for the provider you use later.
 
 ## 2. Create a working directory
 
@@ -63,7 +64,7 @@ vagrant destroy -f
 
 ## Next steps
 
-- If your boxes are published behind a web server, see
-  [Use published boxes from hosted or local metadata](../../how-to/use-published-boxes/).
-- If you want to use the arm64 UTM provider, see
-  [Use UTM boxes](../../how-to/use-utm-boxes/).
+- If your boxes are published behind a web server,
+  see [Use published boxes from hosted or local metadata](../../how-to/use-published-boxes/).
+- If you want to use the arm64 UTM provider,
+  see [Use UTM boxes](../../how-to/use-utm-boxes/).

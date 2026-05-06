@@ -1,7 +1,7 @@
 # Vagrant boxes documentation
 
-This site is for people who want to consume the published boxes from this
-repository.
+This site is for people
+who want to consume the published boxes from this repository.
 
 ## Start here
 
