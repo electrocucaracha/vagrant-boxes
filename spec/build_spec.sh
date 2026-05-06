@@ -55,9 +55,57 @@ Describe 'build.sh'
       : > "$box_file"
       # shellcheck disable=SC2034 # Used by build.sh helpers loaded via ShellSpec.
       BOX_BASE_URL='https://example.invalid/releases/'
+      BOX_NAMESPACE=electrocucaracha-boxes
 
       When call _box_url ubuntu2204 "$box_file"
-      The output should equal "https://example.invalid/releases/generic/ubuntu2204/example.box"
+      The output should equal "https://example.invalid/releases/electrocucaracha-boxes/ubuntu-jammy/example.box"
+    End
+  End
+
+  Describe '_get_distro_slug'
+    It 'returns the Ubuntu 22.04 codename slug'
+      When call _get_distro_slug ubuntu2204
+      The output should equal 'ubuntu-jammy'
+    End
+
+    It 'returns the Ubuntu 24.04 codename slug'
+      When call _get_distro_slug ubuntu2404
+      The output should equal 'ubuntu-noble'
+    End
+
+    It 'returns the Ubuntu 26.04 codename slug'
+      When call _get_distro_slug ubuntu2604
+      The output should equal 'ubuntu-resolute'
+    End
+  End
+
+  Describe '_get_box_version'
+    It 'returns the Ubuntu 22.04 box version by default'
+      VERSION=
+
+      When call _get_box_version ubuntu2204
+      The output should equal '22.04.5'
+    End
+
+    It 'returns the Ubuntu 24.04 box version by default'
+      VERSION=
+
+      When call _get_box_version ubuntu2404
+      The output should equal '24.04.3'
+    End
+
+    It 'returns the Ubuntu 26.04 box version by default'
+      VERSION=
+
+      When call _get_box_version ubuntu2604
+      The output should equal '26.04'
+    End
+
+    It 'uses VERSION as a global override when set'
+      VERSION=99.99.99
+
+      When call _get_box_version ubuntu2404
+      The output should equal '99.99.99'
     End
   End
 
@@ -78,6 +126,115 @@ Describe 'build.sh'
       When call _ensure_packer_plugin github.com/electrocucaracha/utm v4.0.3
       The status should be success
       The output should equal ""
+    End
+  End
+
+  Describe '_validate'
+    It 'cleans up conflicting VMs when CLEANUP_ALL_VMS is enabled'
+      # shellcheck disable=SC2016
+      When run bash -c '. ./build.sh; TEST_ROOT=$(mktemp -d); trap "rm -rf \"$TEST_ROOT\"" EXIT; KVM_DEVICE="$TEST_ROOT/kvm"; : > "$KVM_DEVICE"; PROVIDERS=(libvirt); CLEANUP_ALL_VMS=true; vbox_running=1; vbox_processes=1; libvirt_running=1; VBoxManage() { case "$1 $2" in "list runningvms") [ "$vbox_running" -eq 1 ] && printf "\"vm\" {deadbeef}\n" ;; "controlvm deadbeef") [ "$3" = poweroff ] || return 1; vbox_running=0 ;; esac; }; pgrep() { [ "$vbox_processes" -eq 1 ] && printf "123 VBoxHeadless /usr/lib/virtualbox/VBoxHeadless --startvm deadbeef\n"; }; kill() { [ "$1" = "123" ] || return 1; vbox_processes=0; }; virsh() { case "$1 $2 $3" in "list --state-running --name") [ "$libvirt_running" -eq 1 ] && printf "builder-vm\n" ;; esac; if [ "$1" = "destroy" ]; then [ "$2" = "builder-vm" ] || return 1; libvirt_running=0; fi; }; fuser() { :; }; timeout() { shift; return 124; }; _validate'
+      The status should be success
+      The output should include "Cleaning up running VirtualBox VMs before proceeding"
+      The output should include "Cleaning up orphaned VirtualBox processes before proceeding"
+      The output should include "Cleaning up running libvirt instances before proceeding"
+    End
+
+    It 'fails fast when VirtualBox VM processes are running for libvirt builds'
+      # shellcheck disable=SC2016
+      When run bash -c '. ./build.sh; TEST_ROOT=$(mktemp -d); trap "rm -rf \"$TEST_ROOT\"" EXIT; KVM_DEVICE="$TEST_ROOT/kvm"; : > "$KVM_DEVICE"; PROVIDERS=(libvirt); pgrep() { printf "1234 VBoxHeadless /usr/lib/virtualbox/VBoxHeadless --startvm deadbeef\n"; }; VBoxManage() { [ "$1 $2" = "list runningvms" ] && return 0; return 1; }; _validate'
+      The status should be failure
+      The output should include "Running VirtualBox VM process(es) detected"
+      The output should include "VBoxHeadless"
+      The output should include "After confirming with the user"
+      The output should include "for pid in 1234; do kill \"\$pid\"; done"
+    End
+
+    It 'fails fast when the KVM device is busy for libvirt builds'
+      # shellcheck disable=SC2016
+      When run bash -c '. ./build.sh; TEST_ROOT=$(mktemp -d); trap "rm -rf \"$TEST_ROOT\"" EXIT; KVM_DEVICE="$TEST_ROOT/kvm"; : > "$KVM_DEVICE"; PROVIDERS=(libvirt); pgrep() { :; }; fuser() { printf "1234 5678\n"; }; virsh() { :; }; _validate'
+      The status should be failure
+      The output should include "KVM device"
+      The output should include "is busy"
+    End
+
+    It 'fails fast when the KVM acceleration probe cannot create a VM'
+      # shellcheck disable=SC2016
+      When run bash -c '. ./build.sh; TEST_ROOT=$(mktemp -d); trap "rm -rf \"$TEST_ROOT\"" EXIT; KVM_DEVICE="$TEST_ROOT/kvm"; : > "$KVM_DEVICE"; PROVIDERS=(libvirt); pgrep() { :; }; fuser() { :; }; timeout() { shift; "$@"; }; qemu-system-x86_64() { echo "ioctl(KVM_CREATE_VM) failed: 16 Device or resource busy" >&2; echo "qemu-system-x86_64: failed to initialize kvm: Device or resource busy" >&2; return 1; }; virsh() { :; }; _validate'
+      The status should be failure
+      The output should include "KVM acceleration probe failed"
+      The output should include "failed to initialize kvm"
+    End
+  End
+
+  Describe '_build_box'
+    build_box_with_distro_version() {
+      OUTPUT_ROOT="$TEST_ROOT/dist"
+      WORK_DIR="$TEST_ROOT/output"
+      BOX_NAMESPACE=electrocucaracha-boxes
+      VERSION=
+
+      # shellcheck disable=SC2329 # Invoked indirectly by _build_box in the test.
+      packer() {
+        if [ "$1" = "build" ]; then
+          local build_name=${2#-only=}
+          mkdir -p "$WORK_DIR"
+          : > "$WORK_DIR/${build_name}-${VERSION}.box"
+          printf '0123456789abcdef  %s\n' "${build_name}-${VERSION}.box" > "$WORK_DIR/${build_name}-${VERSION}.box.sha256"
+          return 0
+        fi
+
+        return 1
+      }
+
+      _build_box ubuntu2404 virtualbox
+
+      test -f "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble/ubuntu-noble-virtualbox-x64-24.04.3.box" &&
+        test -f "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble/ubuntu-noble-virtualbox-x64-24.04.3.box.sha256"
+    }
+
+    It 'publishes boxes with distro slug filenames by default'
+      When call build_box_with_distro_version
+      The status should be success
+    End
+  End
+
+  Describe '_write_metadata'
+    metadata_for_distro() {
+      OUTPUT_ROOT="$TEST_ROOT/dist"
+      BOX_NAMESPACE=electrocucaracha-boxes
+      VERSION=
+      # shellcheck disable=SC2034 # Used by build.sh helpers loaded via ShellSpec.
+      BUILT_KEYS=()
+      # shellcheck disable=SC2034 # Used by build.sh helpers loaded via ShellSpec.
+      BUILT_BOXES=()
+      # shellcheck disable=SC2034 # Used by build.sh helpers loaded via ShellSpec.
+      BUILT_CHECKSUMS=()
+
+      mkdir -p "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble"
+      : > "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble/ubuntu-noble-libvirt-x64-24.04.3.box"
+      printf '0123456789abcdef  %s\n' ubuntu-noble-libvirt-x64-24.04.3.box > "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble/ubuntu-noble-libvirt-x64-24.04.3.box.sha256"
+
+      _record_built_box \
+        "ubuntu2404:libvirt" \
+        "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble/ubuntu-noble-libvirt-x64-24.04.3.box" \
+        "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble/ubuntu-noble-libvirt-x64-24.04.3.box.sha256"
+
+      _write_metadata ubuntu2404
+
+      jq -r '[.name, .versions[0].version, .versions[0].providers[0].url] | @tsv' \
+        "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble/metadata.json"
+    }
+
+    expected_metadata() {
+      printf '%s\t%s\tfile://%s' \
+        'electrocucaracha-boxes/ubuntu-noble' \
+        '24.04.3' \
+        "$(realpath "$TEST_ROOT/dist/electrocucaracha-boxes/ubuntu-noble/ubuntu-noble-libvirt-x64-24.04.3.box")"
+    }
+
+    It 'writes metadata with the distro slug name and box URL'
+      When call metadata_for_distro
+      The output should equal "$(expected_metadata)"
     End
   End
 
@@ -142,6 +299,13 @@ Describe 'build.sh'
         test -f "$WWW_ROOT/$BOX_NAMESPACE/ubuntu2204/metadata.json" &&
         test ! -e "$WWW_ROOT/$BOX_NAMESPACE/stale.file"
     }
+
+    It 'prints a sudo hint when the deploy directory is not writable'
+      # shellcheck disable=SC2016
+      When run bash -c '. ./build.sh; TEST_ROOT=$(mktemp -d); trap "rm -rf \"$TEST_ROOT\"" EXIT; OUTPUT_ROOT="$TEST_ROOT/dist"; BOX_NAMESPACE=generic; WWW_ROOT="$TEST_ROOT/www"; DEPLOY_WWW=true; mkdir -p "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu2204"; : > "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu2204/test.box"; mkdir() { if [ "$*" = "-p $WWW_ROOT/$BOX_NAMESPACE" ]; then return 1; fi; command mkdir "$@"; }; _deploy_www'
+      The status should be failure
+      The output should include "Re-run with SUDO_CMD=sudo DEPLOY_WWW=true ./build.sh"
+    End
 
     It 'does nothing by default'
       When call deploy_www_disabled

@@ -11,11 +11,14 @@
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 OUTPUT_ROOT=${OUTPUT_ROOT:-"${SCRIPT_DIR}/dist"}
 WORK_DIR=${WORK_DIR:-"${SCRIPT_DIR}/output"}
-VERSION=${VERSION:-4.3.12}
-BOX_NAMESPACE=generic
+VERSION=${VERSION:-}
+BUILD_NAMESPACE=generic
+BOX_NAMESPACE=${BOX_NAMESPACE:-electrocucaracha-boxes}
 BOX_BASE_URL=${BOX_BASE_URL:-}
 DEPLOY_WWW=${DEPLOY_WWW:-false}
 WWW_ROOT=${WWW_ROOT:-/var/www}
+KVM_DEVICE=${KVM_DEVICE:-/dev/kvm}
+CLEANUP_ALL_VMS=${CLEANUP_ALL_VMS:-false}
 SUDO_CMD=${SUDO_CMD:-}
 PACKER_GETTER_READ_TIMEOUT=${PACKER_GETTER_READ_TIMEOUT:-90m}
 UTM_PACKER_PLUGIN_SOURCE=${UTM_PACKER_PLUGIN_SOURCE:-github.com/electrocucaracha/utm}
@@ -65,6 +68,37 @@ function _get_description() {
 	ubuntu2404) echo "Ubuntu Noble 24.04" ;;
 	ubuntu2604) echo "Ubuntu Resolute 26.04" ;;
 	*) echo "Unknown" ;;
+	esac
+}
+
+function _get_distro_slug() {
+	case "$1" in
+	ubuntu2204) echo "ubuntu-jammy" ;;
+	ubuntu2404) echo "ubuntu-noble" ;;
+	ubuntu2604) echo "ubuntu-resolute" ;;
+	*)
+		echo "ERROR: Unsupported distro '$1'"
+		exit 1
+		;;
+	esac
+}
+
+function _get_box_version() {
+	local distro=${1:?distro is required}
+
+	if [[ -n ${VERSION} ]]; then
+		printf '%s' "${VERSION}"
+		return
+	fi
+
+	case "${distro}" in
+	ubuntu2204) printf '22.04.5' ;;
+	ubuntu2404) printf '24.04.3' ;;
+	ubuntu2604) printf '26.04' ;;
+	*)
+		echo "ERROR: Unsupported distro '${distro}'"
+		exit 1
+		;;
 	esac
 }
 
@@ -245,16 +279,228 @@ function _check_reqs() {
 }
 
 function _validate() {
-	if printf '%s\n' "${PROVIDERS[@]}" | grep -qx 'libvirt'; then
+	_cleanup_all_vms
+
+	if _has_provider libvirt; then
+		_validate_virtualbox_processes
+		_validate_kvm
+
 		if virsh list --state-running --name | grep -q .; then
 			echo "ERROR: Running libvirt instances detected."
 			exit 1
 		fi
 	fi
 
-	if printf '%s\n' "${PROVIDERS[@]}" | grep -qx 'virtualbox'; then
+	if _has_provider virtualbox; then
 		if VBoxManage list runningvms | grep -q .; then
 			echo "ERROR: Running VirtualBox instances detected."
+			exit 1
+		fi
+	fi
+}
+
+function _has_provider() {
+	local provider=${1:?provider is required}
+
+	printf '%s\n' "${PROVIDERS[@]}" | grep -qx "${provider}"
+}
+
+function _cleanup_all_vms() {
+	if [[ ${CLEANUP_ALL_VMS} != "true" ]]; then
+		return
+	fi
+
+	if _has_provider libvirt || _has_provider virtualbox; then
+		_cleanup_running_virtualbox_vms
+		_cleanup_virtualbox_processes
+	fi
+
+	if _has_provider libvirt; then
+		_cleanup_running_libvirt_instances
+	fi
+}
+
+function _get_virtualbox_running_vm_ids() {
+	local vm_line=
+	local vm_id=
+	local running_vm_ids=()
+
+	if command -v VBoxManage >/dev/null 2>&1; then
+		while IFS= read -r vm_line; do
+			[[ -n ${vm_line} ]] || continue
+			vm_id=$(sed -n 's/.*{\([^}][^}]*\)}.*/\1/p' <<<"${vm_line}")
+			[[ -n ${vm_id} ]] && running_vm_ids+=("${vm_id}")
+		done < <(VBoxManage list runningvms 2>/dev/null || true)
+	fi
+
+	printf '%s\n' "${running_vm_ids[@]}"
+}
+
+function _get_virtualbox_running_process_ids() {
+	local process_line=
+	local process_id=
+	local running_process_ids=()
+
+	if command -v pgrep >/dev/null 2>&1; then
+		while IFS= read -r process_line; do
+			[[ -n ${process_line} ]] || continue
+			process_id=$(awk '{ print $1 }' <<<"${process_line}")
+			[[ -n ${process_id} ]] && running_process_ids+=("${process_id}")
+		done < <(pgrep -a -f 'VBoxHeadless|VirtualBoxVM' || true)
+	fi
+
+	printf '%s\n' "${running_process_ids[@]}"
+}
+
+function _cleanup_running_virtualbox_vms() {
+	local running_vm_ids=()
+	local vm_id=
+
+	while IFS= read -r vm_id; do
+		[[ -n ${vm_id} ]] && running_vm_ids+=("${vm_id}")
+	done < <(_get_virtualbox_running_vm_ids)
+
+	if [[ ${#running_vm_ids[@]} -eq 0 ]]; then
+		return
+	fi
+
+	echo "Cleaning up running VirtualBox VMs before proceeding."
+
+	for vm_id in "${running_vm_ids[@]}"; do
+		VBoxManage controlvm "${vm_id}" poweroff >/dev/null
+	done
+}
+
+function _cleanup_virtualbox_processes() {
+	local running_process_ids=()
+	local process_id=
+
+	while IFS= read -r process_id; do
+		[[ -n ${process_id} ]] && running_process_ids+=("${process_id}")
+	done < <(_get_virtualbox_running_process_ids)
+
+	if [[ ${#running_process_ids[@]} -eq 0 ]]; then
+		return
+	fi
+
+	echo "Cleaning up orphaned VirtualBox processes before proceeding."
+
+	for process_id in "${running_process_ids[@]}"; do
+		kill "${process_id}"
+	done
+}
+
+function _cleanup_running_libvirt_instances() {
+	local running_domains=()
+	local domain=
+
+	while IFS= read -r domain; do
+		[[ -n ${domain} ]] && running_domains+=("${domain}")
+	done < <(virsh list --state-running --name)
+
+	if [[ ${#running_domains[@]} -eq 0 ]]; then
+		return
+	fi
+
+	echo "Cleaning up running libvirt instances before proceeding."
+
+	for domain in "${running_domains[@]}"; do
+		virsh destroy "${domain}" >/dev/null
+	done
+}
+
+function _print_virtualbox_stop_instruction() {
+	local running_vm_ids=()
+	local running_process_ids=()
+	local vm_id=
+	local process_id=
+
+	while IFS= read -r vm_id; do
+		[[ -n ${vm_id} ]] && running_vm_ids+=("${vm_id}")
+	done < <(_get_virtualbox_running_vm_ids)
+
+	while IFS= read -r process_id; do
+		[[ -n ${process_id} ]] && running_process_ids+=("${process_id}")
+	done < <(_get_virtualbox_running_process_ids)
+
+	echo "After confirming with the user, stop all running VirtualBox VMs with:"
+
+	if [[ ${#running_vm_ids[@]} -gt 0 ]]; then
+		echo "for vm in ${running_vm_ids[*]}; do VBoxManage controlvm \"\$vm\" poweroff; done"
+		return
+	fi
+
+	if [[ ${#running_process_ids[@]} -gt 0 ]]; then
+		echo "for pid in ${running_process_ids[*]}; do kill \"\$pid\"; done"
+		return
+	fi
+
+	printf '%s\n' "for vm in \$(VBoxManage list runningvms | sed -n 's/.*{\\([^}][^}]*\\)}.*/\\1/p'); do VBoxManage controlvm \"\$vm\" poweroff; done"
+}
+
+function _validate_virtualbox_processes() {
+	local virtualbox_processes=
+
+	if ! command -v pgrep >/dev/null 2>&1; then
+		return
+	fi
+
+	virtualbox_processes=$(pgrep -a -f 'VBoxHeadless|VirtualBoxVM' || true)
+
+	if [[ -n ${virtualbox_processes} ]]; then
+		echo "ERROR: Running VirtualBox VM process(es) detected:"
+		echo "${virtualbox_processes}"
+		_print_virtualbox_stop_instruction
+		exit 1
+	fi
+}
+
+function _validate_kvm() {
+	if [[ ! -e ${KVM_DEVICE} ]]; then
+		echo "ERROR: KVM device '${KVM_DEVICE}' is not available. Ensure KVM is enabled before running libvirt builds."
+		exit 1
+	fi
+
+	if [[ ! -r ${KVM_DEVICE} || ! -w ${KVM_DEVICE} ]]; then
+		echo "ERROR: KVM device '${KVM_DEVICE}' is not accessible. Ensure your user can read and write it."
+		exit 1
+	fi
+
+	if command -v fuser >/dev/null 2>&1; then
+		local kvm_holders=
+		kvm_holders=$(fuser "${KVM_DEVICE}" 2>/dev/null || true)
+
+		if [[ -n ${kvm_holders//[[:space:]]/} ]]; then
+			echo "ERROR: KVM device '${KVM_DEVICE}' is busy (PID(s): ${kvm_holders//$'\n'/ }). Stop other KVM/QEMU workloads and retry."
+			exit 1
+		fi
+	fi
+
+	if command -v timeout >/dev/null 2>&1; then
+		local probe_dir=
+		local probe_stderr=
+		local probe_rc=
+		local probe_error=
+		probe_dir=$(mktemp -d)
+		probe_stderr="${probe_dir}/kvm-probe.stderr"
+
+		timeout 2s qemu-system-x86_64 \
+			-machine type=pc,accel=kvm \
+			-display none \
+			-nodefaults \
+			-m 64 \
+			-S \
+			-monitor none \
+			-serial none \
+			-parallel none \
+			2>"${probe_stderr}" || probe_rc=$?
+
+		probe_rc=${probe_rc:-0}
+		probe_error=$(tr '\n' ' ' <"${probe_stderr}" | sed -e 's/[[:space:]]\+/ /g' -e 's/^ //' -e 's/ $//')
+		rm -rf "${probe_dir}"
+
+		if [[ ${probe_rc} -ne 124 ]]; then
+			echo "ERROR: KVM acceleration probe failed: ${probe_error:-unknown error}. Stop other KVM/QEMU workloads and retry."
 			exit 1
 		fi
 	fi
@@ -263,9 +509,11 @@ function _validate() {
 function _box_url() {
 	local distro=${1:?distro is required}
 	local box_path=${2:?box path is required}
+	local distro_slug
+	distro_slug=$(_get_distro_slug "${distro}")
 
 	if [[ -n ${BOX_BASE_URL} ]]; then
-		printf '%s/%s/%s/%s' "${BOX_BASE_URL%/}" "${BOX_NAMESPACE}" "${distro}" "$(basename "${box_path}")"
+		printf '%s/%s/%s/%s' "${BOX_BASE_URL%/}" "${BOX_NAMESPACE}" "${distro_slug}" "$(basename "${box_path}")"
 		return
 	fi
 
@@ -292,15 +540,22 @@ function _cleanup_utm_vm() {
 function _build_box() {
 	local distro=${1:?distro is required}
 	local provider=${2:?provider is required}
+	local box_version
+	box_version=$(_get_box_version "${distro}")
+	local distro_slug
+	distro_slug=$(_get_distro_slug "${distro}")
 	local build_arch
 	build_arch=$(_get_provider_build_arch "${provider}")
-	local build_name="${BOX_NAMESPACE}-${distro}-${provider}-${build_arch}"
+	local build_name="${BUILD_NAMESPACE}-${distro}-${provider}-${build_arch}"
 	local template
 	template=$(_get_packer_template "${provider}")
-	local box_name="${build_name}-${VERSION}.box"
-	local box_path="${WORK_DIR}/${box_name}"
-	local checksum_path="${box_path}.sha256"
-	local publish_dir="${OUTPUT_ROOT}/${BOX_NAMESPACE}/${distro}"
+	local built_box_name="${build_name}-${box_version}.box"
+	local built_box_path="${WORK_DIR}/${built_box_name}"
+	local built_checksum_path="${built_box_path}.sha256"
+	local publish_box_name="${distro_slug}-${provider}-${build_arch}-${box_version}.box"
+	local publish_dir="${OUTPUT_ROOT}/${BOX_NAMESPACE}/${distro_slug}"
+	local publish_box_path="${publish_dir}/${publish_box_name}"
+	local publish_checksum_path="${publish_box_path}.sha256"
 
 	mkdir -p "${WORK_DIR}"
 
@@ -310,18 +565,18 @@ function _build_box() {
 
 	(
 		cd "${SCRIPT_DIR}"
-		VERSION="${VERSION}" packer build -only="${build_name}" "${template}"
+		VERSION="${box_version}" packer build -only="${build_name}" "${template}"
 	)
 
 	mkdir -p "${publish_dir}"
-	mv "${box_path}" "${publish_dir}/"
-	mv "${checksum_path}" "${publish_dir}/"
+	mv "${built_box_path}" "${publish_box_path}"
+	mv "${built_checksum_path}" "${publish_checksum_path}"
 	rm -rf "${WORK_DIR:?}/${build_name}"
 
 	_record_built_box \
 		"${distro}:${provider}" \
-		"${publish_dir}/${box_name}" \
-		"${publish_dir}/${box_name}.sha256"
+		"${publish_box_path}" \
+		"${publish_checksum_path}"
 }
 
 function _get_default_architecture() {
@@ -352,7 +607,11 @@ function _get_default_architecture() {
 
 function _write_metadata() {
 	local distro=${1:?distro is required}
-	local publish_dir="${OUTPUT_ROOT}/${BOX_NAMESPACE}/${distro}"
+	local box_version
+	box_version=$(_get_box_version "${distro}")
+	local distro_slug
+	distro_slug=$(_get_distro_slug "${distro}")
+	local publish_dir="${OUTPUT_ROOT}/${BOX_NAMESPACE}/${distro_slug}"
 	local default_architecture
 	default_architecture=$(_get_default_architecture "${distro}")
 	local provider_entries=()
@@ -403,9 +662,9 @@ function _write_metadata() {
 	providers_json=$(printf '%s\n' "${provider_entries[@]}" | jq -s '.')
 
 	jq -n \
-		--arg name "${BOX_NAMESPACE}/${distro}" \
+		--arg name "${BOX_NAMESPACE}/${distro_slug}" \
 		--arg description "$(_get_description "${distro}")" \
-		--arg version "${VERSION}" \
+		--arg version "${box_version}" \
 		--argjson providers "${providers_json}" \
 		'{
             name: $name,
@@ -436,7 +695,10 @@ function _deploy_www() {
 		return
 	fi
 
-	mkdir -p "${deploy_dir}"
+	if ! mkdir -p "${deploy_dir}"; then
+		echo "ERROR: Unable to create '${deploy_dir}'. Re-run with SUDO_CMD=sudo DEPLOY_WWW=true ./build.sh or choose a writable WWW_ROOT."
+		exit 1
+	fi
 	rm -rf "${deploy_dir:?}/"*
 	cp -R "${OUTPUT_ROOT}/${BOX_NAMESPACE}/." "${deploy_dir}/"
 }
