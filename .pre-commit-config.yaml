@@ -30,8 +30,6 @@ repos:
     rev: v0.44.0
     hooks:
       - id: markdownlint
-        # MD013: line length
-        args: ["-r", "~MD013,~MD007"]
         files: \.(md|mdown|markdown)$
   - repo: https://github.com/google/yamlfmt
     rev: v0.21.0
