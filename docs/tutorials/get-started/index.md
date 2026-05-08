@@ -1,7 +1,7 @@
-# Get started with a published box
+# Get Started with a Published Box
 
-This tutorial walks through a first successful Vagrant workflow
-with one of the published boxes.
+This tutorial walks you through your first successful Vagrant workflow
+using a published box.
 
 ## Goal
 
@@ -9,18 +9,20 @@ Start an Ubuntu VM from published box metadata,
 connect to it with Vagrant,
 and clean it up when you are done.
 
-## Before you begin
+## Prerequisites
 
-You need:
+Before you begin, ensure you have:
 
 - Vagrant installed
-- the provider you want to use already installed on your host
-- access to a published `metadata.json` URL for one of the boxes
+- The provider you want to use already installed on your host
+- Access to a published `metadata.json` URL for one of the boxes
 
 This example uses the `ubuntu-noble` box name and the `libvirt` provider.
-Swap them for the published box and provider you want to use.
+Replace these with the box and provider you want to use.
 
-## 1. Add the box from its metadata
+## Step 1: Add the Box from Metadata
+
+Add the box using its metadata file:
 
 ```bash
 vagrant box add https://<host>/electrocucaracha-boxes/ubuntu-noble/metadata.json
@@ -29,7 +31,9 @@ vagrant box add https://<host>/electrocucaracha-boxes/ubuntu-noble/metadata.json
 Vagrant reads the metadata file
 and selects the provider-specific artifact for the provider you use later.
 
-## 2. Create a working directory
+## Step 2: Create a Working Directory
+
+Create a directory for your environment and initialize it:
 
 ```bash
 mkdir noble-demo
@@ -37,34 +41,28 @@ cd noble-demo
 vagrant init electrocucaracha-boxes/ubuntu-noble
 ```
 
-This creates a `Vagrantfile` that points at the box name from the metadata.
+This creates a `Vagrantfile` that points to the box name from the metadata.
 
-## 3. Start the VM
+## Step 3: Start the Environment
+
+Start the Vagrant environment:
 
 ```bash
 vagrant up --provider=libvirt
 ```
 
-Use the provider that matches the published artifact you added.
+## Step 4: Connect to the VM
 
-## 4. Connect to the guest
+Once the environment is running, connect to the VM:
 
 ```bash
 vagrant ssh
 ```
 
-At this point you are inside the Ubuntu guest created from the published box.
+## Step 5: Clean Up
 
-## 5. Remove the environment when finished
+When you're done, clean up the environment:
 
 ```bash
-exit
-vagrant destroy -f
+vagrant destroy
 ```
-
-## Next steps
-
-- If your boxes are published behind a web server,
-  see [Use published boxes from hosted or local metadata](../../how-to/use-published-boxes/).
-- If you want to use the arm64 UTM provider,
-  see [Use UTM boxes](../../how-to/use-utm-boxes/).

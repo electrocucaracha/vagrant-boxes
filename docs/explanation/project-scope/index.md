@@ -1,33 +1,32 @@
-# Why the project keeps a narrow support matrix
+# Why the Project Keeps a Narrow Support Matrix
 
-This project deliberately supports a small set of Ubuntu releases
-and provider targets.
+This explanation provides the rationale behind the project's deliberate focus
+on a small set of Ubuntu releases and provider targets.
 
-## The goal
+## The Goal
 
-The goal is not to cover every distro and every Vagrant provider.
-The goal is to publish a maintained set of boxes
-that stay predictable for consumers.
+The primary objective is to publish a maintained set of boxes
+that remain predictable and reliable for consumers,
+rather than attempting to cover every distribution and provider.
 
-## Why the matrix stays small
+## Benefits of a Narrow Scope
 
-A smaller support matrix helps the project:
+A smaller support matrix enables the project to:
 
-- rebuild boxes repeatably
-- keep provisioning behavior consistent across providers
-- validate generated artifacts more reliably
-- publish metadata and checksums with less operational drift
+- Rebuild boxes consistently and reliably.
+- Maintain consistent provisioning behavior across providers.
+- Validate generated artifacts with greater accuracy.
+- Publish metadata and checksums with minimal operational drift.
 
-## What that means for users
+## What This Means for Users
 
-For consumers,
-the narrow scope makes the published boxes easier to understand:
+For consumers, the narrow scope ensures:
 
-- box names follow one naming scheme
-- metadata layout stays consistent across distros
-- provider support is explicit instead of implicit
-- UTM support remains separate
-  from the default `libvirt` and `virtualbox` builds
+- Predictable naming schemes for boxes.
+- Consistent metadata layouts across distributions.
+- Explicit provider support.
+- Clear separation of UTM support from default builds
+  (e.g., `libvirt` and `virtualbox`).
 
-This trade-off favors predictable, well-defined artifacts
-over broad but harder-to-maintain coverage.
+This trade-off prioritizes well-defined, predictable artifacts
+over broader but less maintainable coverage.

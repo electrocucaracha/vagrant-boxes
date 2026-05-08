@@ -1,16 +1,17 @@
-# Use UTM boxes
+# Use UTM Boxes
 
-Use this guide when you want to run the arm64 UTM variant of a published box.
+This guide provides step-by-step instructions for running the arm64 UTM variant
+of a published box.
 
-## Before you begin
+## Prerequisites
 
-You need:
+Before you begin, ensure you have:
 
 - macOS
 - Vagrant
 - UTM
-- the `vagrant_utm` provider plugin
-- access to a published UTM `metadata.json` file
+- The `vagrant_utm` provider plugin
+- Access to a published UTM `metadata.json` file
 
 Install the Vagrant provider plugin:
 
@@ -18,7 +19,9 @@ Install the Vagrant provider plugin:
 vagrant plugin install vagrant_utm
 ```
 
-## Add the box
+## Add the Box
+
+Add the box from the published metadata file:
 
 ```bash
 vagrant box add https://<host>/electrocucaracha-boxes/ubuntu-noble/metadata.json
@@ -26,16 +29,30 @@ vagrant box add https://<host>/electrocucaracha-boxes/ubuntu-noble/metadata.json
 
 The UTM boxes use the `utm` provider and publish `arm64` artifacts.
 
-## Initialize and start the guest
+## Initialize and Start the Guest
 
-```bash
-mkdir noble-utm-demo
-cd noble-utm-demo
-vagrant init electrocucaracha-boxes/ubuntu-noble
-vagrant up --provider=utm
-```
+1. Create a new directory for your environment:
 
-## Connect to the guest
+   ```bash
+   mkdir noble-utm-demo
+   cd noble-utm-demo
+   ```
+
+2. Initialize the Vagrant environment:
+
+   ```bash
+   vagrant init electrocucaracha-boxes/ubuntu-noble
+   ```
+
+3. Start the environment:
+
+   ```bash
+   vagrant up --provider=utm
+   ```
+
+## Connect to the Guest
+
+Once the environment is running, connect to the guest:
 
 ```bash
 vagrant ssh

@@ -1,9 +1,12 @@
-# Box metadata and artifact layout
+# Box Metadata and Artifact Layout
 
-Each published distro directory contains a `metadata.json` file
-plus one or more provider-specific `.box` files and checksum files.
+This reference describes the structure and fields of the metadata files
+used for published boxes.
 
-## Published layout
+## Published Layout
+
+The directory structure for published distributions includes a `metadata.json`
+file and provider-specific `.box` files:
 
 ```text
 <namespace>/
@@ -13,7 +16,7 @@ plus one or more provider-specific `.box` files and checksum files.
     <distro-slug>-<provider>-<build-arch>-<version>.box.sha256
 ```
 
-Example:
+### Example
 
 ```text
 electrocucaracha-boxes/
@@ -23,9 +26,9 @@ electrocucaracha-boxes/
     ubuntu-noble-libvirt-x64-24.04.3.box.sha256
 ```
 
-## Metadata fields
+## Metadata Fields
 
-The generated metadata uses this shape:
+The `metadata.json` file includes the following fields:
 
 ```json
 {
@@ -37,31 +40,10 @@ The generated metadata uses this shape:
       "providers": [
         {
           "name": "libvirt",
-          "url": "https://<host>/electrocucaracha-boxes/ubuntu-noble/ubuntu-noble-libvirt-x64-24.04.3.box",
-          "checksum_type": "sha256",
-          "checksum": "<sha256>",
-          "architecture": "amd64",
-          "default_architecture": true
+          "url": "https://<host>/electrocucaracha-boxes/ubuntu-noble/ubuntu-noble-libvirt-x64-24.04.3.box"
         }
       ]
     }
   ]
 }
 ```
-
-## URL behavior
-
-| Metadata mode           | Provider URLs                    |
-| ----------------------- | -------------------------------- |
-| `BOX_BASE_URL` is set   | Hosted `https://...` URLs        |
-| `BOX_BASE_URL` is unset | Absolute local `file://...` URLs |
-
-## Architecture selection
-
-Each provider entry records its architecture explicitly:
-
-- `libvirt` and `virtualbox` use `amd64`
-- `utm` uses `arm64`
-
-When a distro has both `amd64` and `arm64` provider entries,
-the metadata marks the `amd64` entry as the default architecture.
