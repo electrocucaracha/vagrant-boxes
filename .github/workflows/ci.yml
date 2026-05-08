@@ -7,7 +7,7 @@
 # which accompanies this distribution, and is available at
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
-name: CI
+name: Continuous Integration
 "on":
   push:
   pull_request:
@@ -19,10 +19,20 @@ jobs:
       contents: read
     outputs:
       scripts: ${{ steps.filter.outputs.scripts }}
+      docs: ${{ steps.filter.outputs.docs }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
           persist-credentials: false
+      - name: Setup Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # 6.4.0
+        with:
+          go-version: "^1.26"
+          cache: false
+      - name: Install dependencies
+        run: go install github.com/boyter/scc/v3@latest
+      - name: Run scc tool for counting lines of code
+        run: scc --format wide
       # yamllint disable rule:line-length
       - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # 4.0.1
         # yamllint enable rule:line-length
@@ -35,6 +45,9 @@ jobs:
               - '.shellspec'
               - 'spec/**'
               - 'Makefile'
+            docs:
+              - '**/*.md'
+              - 'docs/**'
   check-shellspec:
     name: Run BDD shell specs
     needs: changes
@@ -52,3 +65,17 @@ jobs:
       - name: Run ShellSpec
         shell: 'script -q -e -c "bash {0}"'
         run: ../shellspec/shellspec --profile --xtrace
+  check-broken-links:
+    name: Check documentation external links
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+        with:
+          persist-credentials: false
+      - name: Check broken links
+        # yamllint disable rule:line-length
+        uses: tcort/github-action-markdown-link-check@e7c7a18363c842693fadde5d41a3bd3573a7a225 # 1.1.2

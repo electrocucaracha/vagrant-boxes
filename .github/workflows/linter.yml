@@ -31,19 +31,6 @@ jobs:
         run: go install github.com/boyter/scc/v3@latest
       - name: Run scc tool
         run: scc --format wide
-  check-broken-links:
-    name: Check documentation external links
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
-        with:
-          persist-credentials: false
-      - name: Check broken links
-        # yamllint disable rule:line-length
-        uses: tcort/github-action-markdown-link-check@e7c7a18363c842693fadde5d41a3bd3573a7a225 # 1.1.2
-        # yamllint enable rule:line-length
   check-super-linter:
     name: Check syntax (super-linter)
     runs-on: ubuntu-latest
@@ -62,48 +49,44 @@ jobs:
         uses: super-linter/super-linter@9e863354e3ff62e0727d37183162c4a88873df41 # 8.6.0
         # yamllint enable rule:line-length
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LINTER_RULES_PATH: /
-          SAVE_SUPER_LINTER_OUTPUT: true
-          DEFAULT_BRANCH: >-
-            ${{ github.head_ref || github.ref_name }}
-          IGNORE_GITIGNORED_FILES: true
-      # yamllint disable rule:line-length
-      - uses: GrantBirki/git-diff-action@b27608d18e6dd9b31b46ede56a93e045d3881a28 # 3.0.0
-        # yamllint enable rule:line-length
-        id: git-diff
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          LINTER_RULES_PATH: "/"
+          SAVE_SUPER_LINTER_OUTPUT: "true"
+          DEFAULT_BRANCH: "${{ github.head_ref || github.ref_name }}"
+          IGNORE_GITIGNORED_FILES: "true"
+      - name: Upload linter logs
         if: failure()
-      - name: Get failed linter logs
-        id: get-failed-linters
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: super-linter-logs
+          path: ./super-linter-output/
+      - name: Get log URL and metadata
         if: failure()
+        id: log-metadata
         run: |
-          find ./super-linter-output/super-linter/ \
-            -name '*.json' \
-            -exec sh -c \
-            'jq -e ".Exitval != 0" "$1" >/dev/null && printf "%s\0" "$1"' \
-            _ {} \; \
-            | xargs -0 jq -s '.' > linter-errors.json
-      # yamllint disable rule:line-length
-      - uses: actions/ai-inference@af6ad2c4ac4edf01884054fc3a6caa6d2567c13a # 2.0.8
-        # yamllint enable rule:line-length
-        id: ai-linter-analysis
+          echo "log_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" >> $GITHUB_ENV
+          echo "super_linter_version=$(jq -r '.version' ./super-linter-output/super-linter/super-linter.json)" >> $GITHUB_ENV
+          echo "commit_id=${{ github.sha }}" >> $GITHUB_ENV
+      - name: AI Linter Analysis
         if: failure()
+        uses: actions/ai-inference@af6ad2c4ac4edf01884054fc3a6caa6d2567c13a # 2.0.8
+        id: ai-linter-analysis
         with:
           model: mistral-ai/Ministral-3B
           input: |
-            diff: ${{ steps.git-diff.outputs.raw-diff }}
-          prompt-file: ./linter-errors.json
+            log_url: ${{ env.log_url }}
+            super_linter_version: ${{ env.super_linter_version }}
+            commit_id: ${{ env.commit_id }}
           system-prompt: |
             You are an expert software engineer who specializes in
             diagnosing and fixing software build and runtime failures.
             Always provide structured reasoning and propose concrete fixes
             when possible.
 
-            Task: Analyze the logs of the super-linter-output/ folder from
-            the failed `ubuntu-latest` CI workflow run. Cross-reference the
-            errors with the code diff to determine the root cause of the
-            failure.
-            {{ diff }}
+            Task: Analyze the logs available at the provided URL from the
+            failed `ubuntu-latest` CI workflow run. Cross-reference the
+            errors with the super-linter version and commit ID to determine
+            the root cause of the failure.
 
             Objectives:
             1. **Diagnosis:** Identify patterns, anomalies, or dependencies
