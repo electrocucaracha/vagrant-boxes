@@ -75,7 +75,7 @@ jobs:
         id: ai-linter-analysis
         with:
           model: mistral-ai/Ministral-3B
-          input: |
+          prompt: |
             log_url: ${{ env.log_url }}
             super_linter_version: ${{ env.super_linter_version }}
             commit_id: ${{ env.commit_id }}
