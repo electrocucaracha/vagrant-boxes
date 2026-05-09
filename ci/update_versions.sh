@@ -28,7 +28,10 @@ exceptions=('reviewdog/action-misspell' 'actions/attest-build-provenance' 'Grant
 # Remove an entry only once the underlying issue is confirmed resolved.
 # austenstone/copilot-cli: v3.0+ depends on actions/setup-copilot@v0 which does
 # not yet exist publicly; keep at v2.0 until that action is released.
-readonly pinned_actions=('austenstone/copilot-cli')
+# super-linter/super-linter: v8.6.0 bundles ava@7.0.0, which currently fails
+# under the container's Node.js/npm engine constraints; keep at v8.5.0 until a
+# fixed upstream release is available.
+readonly pinned_actions=('austenstone/copilot-cli' 'super-linter/super-linter')
 for action in $gh_actions; do
 	is_pinned=false
 	for pinned in "${pinned_actions[@]}"; do
