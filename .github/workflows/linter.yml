@@ -63,10 +63,12 @@ jobs:
       - name: Get log URL and metadata
         if: failure()
         id: log-metadata
+        # yamllint disable rule:line-length
         run: |
           echo "log_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" >> $GITHUB_ENV
           echo "super_linter_version=$(jq -r '.version' ./super-linter-output/super-linter/super-linter.json)" >> $GITHUB_ENV
           echo "commit_id=${{ github.sha }}" >> $GITHUB_ENV
+        # yamllint enable rule:line-length
       - name: AI Linter Analysis
         if: failure()
         uses: actions/ai-inference@af6ad2c4ac4edf01884054fc3a6caa6d2567c13a # 2.0.8
