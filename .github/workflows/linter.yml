@@ -73,11 +73,11 @@ jobs:
           if [ -n "$ARTIFACT_URL" ]; then
             log_url="$ARTIFACT_URL"
           else
-            log_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+            log_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
 
           if [ -f "./super-linter-output/super-linter/super-linter.json" ]; then
-            super_linter_version="$(jq -r '.version' "./super-linter-output/super-linter/super-linter.json")"
+            super_linter_version="$(jq -r '.version' "./super-linter-output/super-linter/super-linter.json")" || super_linter_version="unknown"
           else
             super_linter_version="unknown"
           fi
