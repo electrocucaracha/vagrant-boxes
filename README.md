@@ -18,8 +18,8 @@ for the `libvirt`, `virtualbox`, and `utm` providers.
 
 It focuses on a small, maintained set of Ubuntu releases:
 
-- Ubuntu 22.04
-- Ubuntu 24.04
+- [Ubuntu 22.04](https://portal.cloud.hashicorp.com/vagrant/discover/electrocucaracha-boxes/ubuntu-jammy)
+- [Ubuntu 24.04](https://portal.cloud.hashicorp.com/vagrant/discover/electrocucaracha-boxes/ubuntu-noble)
 - Ubuntu 26.04
 
 ## Benefits
