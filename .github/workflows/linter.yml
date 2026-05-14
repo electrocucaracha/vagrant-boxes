@@ -58,6 +58,7 @@ jobs:
           IGNORE_GITIGNORED_FILES: "true"
       - name: Upload linter logs
         if: failure()
+        id: upload-linter-logs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
         with:
           name: super-linter-logs
@@ -65,10 +66,16 @@ jobs:
       - name: Get log URL and metadata
         if: failure()
         id: log-metadata
+        env:
+          ARTIFACT_URL: ${{ steps.upload-linter-logs.outputs.artifact-url }}
         # yamllint disable rule:line-length
         run: |
           {
-            echo "log_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+            if [ -n "$ARTIFACT_URL" ]; then
+              echo "log_url=$ARTIFACT_URL"
+            else
+              echo "log_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+            fi
 
             if [ -f "./super-linter-output/super-linter/super-linter.json" ]; then
               super_linter_version="$(jq -r '.version' "./super-linter-output/super-linter/super-linter.json")"
