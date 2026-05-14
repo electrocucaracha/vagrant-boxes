@@ -32,6 +32,24 @@ For changes to `build.sh` and related shell scripts:
 - preserve explicit error handling with `set -o pipefail`, `errexit`, and
   `nounset` when working in existing scripts
 
+## Google Shell Style Guide
+
+Follow the Google Shell Style Guide:
+<https://google.github.io/styleguide/shellguide.html>.
+
+Apply these expectations to new and revised shell code:
+
+- prefer `$(...)` command substitution over backticks
+- use `[[ ... ]]` for conditionals
+- always quote variable expansions unless intentional word splitting is needed
+- prefer local variables in functions (`local name=value`)
+- use `readonly` for constants and avoid magic values
+- keep functions small and focused with clear names
+- prefer helper functions over repeated inline command sequences
+- use `main` for non-trivial scripts and call it at the end
+- check command exit status and return explicit errors where helpful
+- keep comments concise and focused on non-obvious behavior
+
 ## Example completion checklist
 
 ```text
