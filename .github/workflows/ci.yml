@@ -48,6 +48,11 @@ jobs:
             docs:
               - '**/*.md'
               - 'docs/**'
+            code:
+              - 'http/**'
+              - 'scripts/**'
+              - 'tpl/**'
+              - 'build.sh'
   check-shellspec:
     name: Run BDD shell specs
     needs: changes
@@ -79,3 +84,38 @@ jobs:
       - name: Check broken links
         # yamllint disable rule:line-length
         uses: tcort/github-action-markdown-link-check@e7c7a18363c842693fadde5d41a3bd3573a7a225 # 1.1.2
+  functional-test:
+    name: Execute functional tests on self-hosted runner
+    needs: changes
+    runs-on: vm-self-hosted
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [ubuntu2204, ubuntu2404, ubuntu2604]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+        with:
+          persist-credentials: false
+      - name: Install build prerequisites
+        env:
+          DISTRO: ${{ matrix.distro }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            jq \
+            packer \
+            coreutils \
+            vagrant \
+            virtualbox
+      - name: Ensure packer plugins for virtualbox
+        run: |
+          packer plugins install github.com/hashicorp/vagrant
+          packer plugins install github.com/hashicorp/virtualbox
+      - name: Run build script
+        env:
+          DEBUG: true
+          PROVIDERS: virtualbox
+          DISTROS: ${{ matrix.distro }}
+        run: ./build.sh
