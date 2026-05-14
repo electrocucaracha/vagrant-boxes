@@ -20,6 +20,7 @@ jobs:
     outputs:
       scripts: ${{ steps.filter.outputs.scripts }}
       docs: ${{ steps.filter.outputs.docs }}
+      code: ${{ steps.filter.outputs.code }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
@@ -87,6 +88,7 @@ jobs:
   functional-test:
     name: Execute functional tests on self-hosted runner
     needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: vm-self-hosted
     permissions:
       contents: read
