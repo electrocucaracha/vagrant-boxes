@@ -70,22 +70,31 @@ jobs:
           ARTIFACT_URL: ${{ steps.upload-linter-logs.outputs.artifact-url }}
         # yamllint disable rule:line-length
         run: |
+          if [ -n "$ARTIFACT_URL" ]; then
+            log_url="$ARTIFACT_URL"
+          else
+            log_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          fi
+
+          if [ -f "./super-linter-output/super-linter/super-linter.json" ]; then
+            super_linter_version="$(jq -r '.version' "./super-linter-output/super-linter/super-linter.json")"
+          else
+            super_linter_version="unknown"
+          fi
+
+          commit_id="${{ github.sha }}"
+
           {
-            if [ -n "$ARTIFACT_URL" ]; then
-              echo "log_url=$ARTIFACT_URL"
-            else
-              echo "log_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
-            fi
-
-            if [ -f "./super-linter-output/super-linter/super-linter.json" ]; then
-              super_linter_version="$(jq -r '.version' "./super-linter-output/super-linter/super-linter.json")"
-            else
-              super_linter_version="unknown"
-            fi
+            echo "log_url=${log_url}"
             echo "super_linter_version=${super_linter_version}"
-
-            echo "commit_id=${{ github.sha }}"
+            echo "commit_id=${commit_id}"
           } >> "$GITHUB_ENV"
+
+          {
+            echo "log_url=${log_url}"
+            echo "super_linter_version=${super_linter_version}"
+            echo "commit_id=${commit_id}"
+          } >> "$GITHUB_OUTPUT"
         # yamllint enable rule:line-length
       - name: AI Linter Analysis
         if: failure()
@@ -94,9 +103,9 @@ jobs:
         with:
           model: mistral-ai/Ministral-3B
           prompt: |
-            log_url: ${{ env.log_url }}
-            super_linter_version: ${{ env.super_linter_version }}
-            commit_id: ${{ env.commit_id }}
+            log_url: ${{ steps.log-metadata.outputs.log_url }}
+            super_linter_version: ${{ steps.log-metadata.outputs.super_linter_version }}
+            commit_id: ${{ steps.log-metadata.outputs.commit_id }}
           system-prompt: |
             You are an expert software engineer who specializes in
             diagnosing and fixing software build and runtime failures.
