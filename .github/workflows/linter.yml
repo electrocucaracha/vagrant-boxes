@@ -122,30 +122,24 @@ jobs:
           fi
 
           changed_files="Unable to determine changed files"
-          commit_diff="Unable to determine commit diff"
+          commit_diff_excerpt="Unable to determine commit diff excerpt"
           if [ -n "$base_sha" ] && \
             git cat-file -e "${base_sha}^{commit}" >/dev/null 2>&1; then
             changed_files="$(git diff --name-status "$base_sha" "$COMMIT_SHA" \
-              | sed '/^$/d' | head -n 200 || true)"
-            commit_diff="$(git diff --minimal --unified=3 "$base_sha" "$COMMIT_SHA" \
-              | head -c 12000 || true)"
+              | sed '/^$/d' | head -n 80 || true)"
+            commit_diff_excerpt="$(git diff --minimal --unified=1 "$base_sha" "$COMMIT_SHA" \
+              | head -c 4000 || true)"
           fi
 
+          log_file_count="$(find ./super-linter-output -type f 2>/dev/null | wc -l || true)"
           log_files="$(find ./super-linter-output -type f 2>/dev/null \
-            | sort | head -n 200 || true)"
+            | sort | head -n 40 || true)"
 
           error_excerpt="$(rg -n -i \
             'error|failed|failure|exception|traceback|fatal|not found|undefined' \
-            ./super-linter-output 2>/dev/null | head -n 250 || true)"
+            ./super-linter-output 2>/dev/null | head -n 80 | head -c 4000 || true)"
           if [ -z "$error_excerpt" ]; then
             error_excerpt="No obvious error keywords were found in saved super-linter logs."
-          fi
-
-          raw_log_excerpt="$(find ./super-linter-output -type f \
-            \( -name '*.log' -o -name '*.txt' -o -name '*.json' \) -print0 \
-            2>/dev/null | xargs -0 -r cat 2>/dev/null | head -c 12000 || true)"
-          if [ -z "$raw_log_excerpt" ]; then
-            raw_log_excerpt="No log content captured from super-linter-output files."
           fi
 
           DELIM="EOF_$(uuidgen)"
@@ -157,11 +151,11 @@ jobs:
             printf "commit_sha: %s\n" "$COMMIT_SHA"
             printf "base_sha: %s\n" "${base_sha:-unknown}"
             printf "super_linter_version: %s\n" "$SUPER_LINTER_VERSION"
+            printf "log_file_count: %s\n" "$log_file_count"
             printf "\n[changed_files]\n%s\n" "$changed_files"
             printf "\n[super_linter_output_files]\n%s\n" "$log_files"
             printf "\n[error_excerpt]\n%s\n" "$error_excerpt"
-            printf "\n[raw_log_excerpt]\n%s\n" "$raw_log_excerpt"
-            printf "\n[git_diff_excerpt]\n%s\n" "$commit_diff"
+            printf "\n[git_diff_excerpt]\n%s\n" "$commit_diff_excerpt"
             printf "%s\n" "$DELIM"
           } >> "$GITHUB_OUTPUT"
       - name: AI Linter Analysis
