@@ -100,12 +100,15 @@ jobs:
         if: failure()
         id: investigation-context
         env:
+          API_URL: ${{ github.api_url }}
           BEFORE_SHA: ${{ github.event.before }}
           COMMIT_SHA: ${{ github.sha }}
           EVENT_NAME: ${{ github.event_name }}
           LOG_URL: ${{ steps.log-metadata.outputs.log_url }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           REF_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
           SUPER_LINTER_VERSION: >-
             ${{ steps.log-metadata.outputs.super_linter_version }}
         run: |
@@ -138,6 +141,32 @@ jobs:
           error_excerpt="$(rg -n -i \
             'error|failed|failure|exception|traceback|fatal|not found|undefined' \
             ./super-linter-output 2>/dev/null | head -n 80 | head -c 4000 || true)"
+
+          run_log_excerpt=""
+          run_logs_zip="$(mktemp)"
+          run_logs_dir="$(mktemp -d)"
+          if curl -fsSL \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "${API_URL}/repos/${REPOSITORY}/actions/runs/${RUN_ID}/logs" \
+            -o "$run_logs_zip"; then
+            if unzip -qq "$run_logs_zip" -d "$run_logs_dir"; then
+              run_log_excerpt="$(rg -n -i \
+                'error|failed|failure|exception|traceback|fatal|not found|undefined|duplicate|clone|threshold' \
+                "$run_logs_dir" 2>/dev/null | head -n 80 | head -c 4000 || true)"
+            fi
+          fi
+          rm -f "$run_logs_zip"
+          rm -rf "$run_logs_dir"
+
+          if [ -n "$run_log_excerpt" ]; then
+            if [ -n "$error_excerpt" ]; then
+              error_excerpt="$(printf '%s\n\n[workflow_run_logs]\n%s' "$error_excerpt" "$run_log_excerpt")"
+            else
+              error_excerpt="$run_log_excerpt"
+            fi
+          fi
+
           if [ -z "$error_excerpt" ]; then
             error_excerpt="No obvious error keywords were found in saved super-linter logs."
           fi

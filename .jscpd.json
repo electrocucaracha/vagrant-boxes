@@ -1,6 +1,8 @@
 {
   "threshold": 0,
   "ignore": [
+    "**/.github/workflows/ci.yml",
+    "**/.github/workflows/linter.yml",
     "**/dist/**",
     "**/generic-*.json",
     "**/scripts/ubuntu2204/**",
