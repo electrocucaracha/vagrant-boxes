@@ -20,7 +20,8 @@ jobs:
     outputs:
       scripts: ${{ steps.filter.outputs.scripts }}
       docs: ${{ steps.filter.outputs.docs }}
-      code: ${{ steps.filter.outputs.code }}
+      code: ${{ steps.functional-matrix.outputs.run_functional }}
+      distros: ${{ steps.functional-matrix.outputs.distros }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
@@ -49,11 +50,63 @@ jobs:
             docs:
               - '**/*.md'
               - 'docs/**'
-            code:
-              - 'http/**'
-              - 'scripts/**'
-              - 'tpl/**'
+            common:
               - 'build.sh'
+              - 'generic-*.json'
+              - 'http/generic.*'
+              - 'scripts/common/**'
+              - 'tpl/generic/**'
+            ubuntu2204:
+              - 'http/ubuntu2204/**'
+              - 'http/ubuntu2204-utm/**'
+              - 'scripts/ubuntu2204/**'
+              - 'tpl/generic-ubuntu2204*.rb'
+            ubuntu2404:
+              - 'http/ubuntu2404/**'
+              - 'http/ubuntu2404-utm/**'
+              - 'scripts/ubuntu2404/**'
+              - 'tpl/generic-ubuntu2404*.rb'
+            ubuntu2604:
+              - 'http/ubuntu2604/**'
+              - 'http/ubuntu2604-utm/**'
+              - 'scripts/ubuntu2604/**'
+              - 'tpl/generic-ubuntu2604*.rb'
+      - name: Build functional test matrix
+        id: functional-matrix
+        env:
+          COMMON_CHANGED: ${{ steps.filter.outputs.common }}
+          UBUNTU2204_CHANGED: ${{ steps.filter.outputs.ubuntu2204 }}
+          UBUNTU2404_CHANGED: ${{ steps.filter.outputs.ubuntu2404 }}
+          UBUNTU2604_CHANGED: ${{ steps.filter.outputs.ubuntu2604 }}
+        run: |
+          distros=()
+
+          if [[ "${COMMON_CHANGED}" == "true" ]]; then
+            distros=("ubuntu2204" "ubuntu2404" "ubuntu2604")
+          else
+            if [[ "${UBUNTU2204_CHANGED}" == "true" ]]; then
+              distros+=("ubuntu2204")
+            fi
+
+            if [[ "${UBUNTU2404_CHANGED}" == "true" ]]; then
+              distros+=("ubuntu2404")
+            fi
+
+            if [[ "${UBUNTU2604_CHANGED}" == "true" ]]; then
+              distros+=("ubuntu2604")
+            fi
+          fi
+
+          if [[ ${#distros[@]} -eq 0 ]]; then
+            echo 'run_functional=false' >> "${GITHUB_OUTPUT}"
+            echo 'distros=["ubuntu2204"]' >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          matrix_json=$(printf '%s\n' "${distros[@]}" | jq -R . | jq -s -c .)
+
+          echo 'run_functional=true' >> "${GITHUB_OUTPUT}"
+          echo "distros=${matrix_json}" >> "${GITHUB_OUTPUT}"
   check-shellspec:
     name: Run BDD shell specs
     needs: changes
@@ -95,7 +148,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [ubuntu2204, ubuntu2404, ubuntu2604]
+        distro: ${{ fromJson(needs.changes.outputs.distros) }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
