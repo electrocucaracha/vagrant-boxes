@@ -35,6 +35,7 @@ jobs:
     name: Check syntax (super-linter)
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       models: read
       issues: write
