@@ -35,6 +35,7 @@ jobs:
     name: Check syntax (super-linter)
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       models: read
       issues: write
@@ -100,16 +101,22 @@ jobs:
         if: failure()
         id: investigation-context
         env:
+          API_URL: ${{ github.api_url }}
           BEFORE_SHA: ${{ github.event.before }}
           COMMIT_SHA: ${{ github.sha }}
           EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ github.token }}
           LOG_URL: ${{ steps.log-metadata.outputs.log_url }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           REF_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
           SUPER_LINTER_VERSION: >-
             ${{ steps.log-metadata.outputs.super_linter_version }}
         run: |
           set -euo pipefail
+          readonly super_linter_error_pattern='error|failed|failure|exception|traceback|fatal|not found|undefined'
+          readonly workflow_log_error_pattern="${super_linter_error_pattern}|duplicate|clone|threshold"
 
           base_sha=""
           if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ]; then
@@ -136,8 +143,37 @@ jobs:
             | sort | head -n 40 || true)"
 
           error_excerpt="$(rg -n -i \
-            'error|failed|failure|exception|traceback|fatal|not found|undefined' \
+            "$super_linter_error_pattern" \
             ./super-linter-output 2>/dev/null | head -n 80 | head -c 4000 || true)"
+
+          run_log_excerpt=""
+          run_logs_zip="$(mktemp)"
+          run_logs_dir="$(mktemp -d)"
+          cleanup_temp_logs() {
+            rm -f "$run_logs_zip"
+            rm -rf "$run_logs_dir"
+          }
+          trap cleanup_temp_logs EXIT
+          if curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "${API_URL}/repos/${REPOSITORY}/actions/runs/${RUN_ID}/logs" \
+            -o "$run_logs_zip"; then
+            if unzip -qq "$run_logs_zip" -d "$run_logs_dir"; then
+              run_log_excerpt="$(rg -n -i \
+                "$workflow_log_error_pattern" \
+                "$run_logs_dir" 2>/dev/null | head -n 80 | head -c 4000 || true)"
+            fi
+          fi
+
+          if [ -n "$run_log_excerpt" ]; then
+            if [ -n "$error_excerpt" ]; then
+              error_excerpt="$(printf '%s\n\n[workflow_run_logs]\n%s' "$error_excerpt" "$run_log_excerpt")"
+            else
+              error_excerpt="$run_log_excerpt"
+            fi
+          fi
+
           if [ -z "$error_excerpt" ]; then
             error_excerpt="No obvious error keywords were found in saved super-linter logs."
           fi
