@@ -270,10 +270,10 @@ jobs:
             printf "\n[git_diff_excerpt]\n%s\n" "$commit_diff_excerpt"
             printf "%s\n" "$DELIM"
           } >> "$GITHUB_OUTPUT"
-      - name: AI Linter Analysis
+      - name: AI Build Output Analysis
         if: failure()
         uses: actions/ai-inference@af6ad2c4ac4edf01884054fc3a6caa6d2567c13a # 2.0.8
-        id: ai-linter-analysis
+        id: ai-build-output-analysis
         with:
           enable-github-mcp: true
           github-mcp-token: ${{ secrets.GITHUB_MCP_TOKEN }} # zizmor: ignore[secrets-outside-env]
@@ -344,7 +344,7 @@ jobs:
         id: get-analysis-output
         if: failure()
         env:
-          RESPONSE_FILE: ${{ steps.ai-linter-analysis.outputs.response-file }}
+          RESPONSE_FILE: ${{ steps.ai-build-output-analysis.outputs.response-file }}
         run: |
           DELIM="EOF_$(uuidgen)"
 
