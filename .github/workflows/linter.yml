@@ -113,6 +113,8 @@ jobs:
             ${{ steps.log-metadata.outputs.super_linter_version }}
         run: |
           set -euo pipefail
+          readonly super_linter_error_pattern='error|failed|failure|exception|traceback|fatal|not found|undefined'
+          readonly workflow_log_error_pattern="${super_linter_error_pattern}|duplicate|clone|threshold"
 
           base_sha=""
           if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ]; then
@@ -139,12 +141,17 @@ jobs:
             | sort | head -n 40 || true)"
 
           error_excerpt="$(rg -n -i \
-            'error|failed|failure|exception|traceback|fatal|not found|undefined' \
+            "$super_linter_error_pattern" \
             ./super-linter-output 2>/dev/null | head -n 80 | head -c 4000 || true)"
 
           run_log_excerpt=""
           run_logs_zip="$(mktemp)"
           run_logs_dir="$(mktemp -d)"
+          cleanup_temp_logs() {
+            rm -f "$run_logs_zip"
+            rm -rf "$run_logs_dir"
+          }
+          trap cleanup_temp_logs EXIT
           if curl -fsSL \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
@@ -152,12 +159,10 @@ jobs:
             -o "$run_logs_zip"; then
             if unzip -qq "$run_logs_zip" -d "$run_logs_dir"; then
               run_log_excerpt="$(rg -n -i \
-                'error|failed|failure|exception|traceback|fatal|not found|undefined|duplicate|clone|threshold' \
+                "$workflow_log_error_pattern" \
                 "$run_logs_dir" 2>/dev/null | head -n 80 | head -c 4000 || true)"
             fi
           fi
-          rm -f "$run_logs_zip"
-          rm -rf "$run_logs_dir"
 
           if [ -n "$run_log_excerpt" ]; then
             if [ -n "$error_excerpt" ]; then
