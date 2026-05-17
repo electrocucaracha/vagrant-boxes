@@ -145,6 +145,7 @@ jobs:
     runs-on: vm-self-hosted
     permissions:
       contents: read
+      issues: write
     strategy:
       fail-fast: false
       matrix:
@@ -173,4 +174,209 @@ jobs:
           DEBUG: true
           PROVIDERS: virtualbox
           DISTROS: ${{ matrix.distro }}
-        run: ./build.sh
+        run: ./build.sh > "${DISTROS}-build.log" 2>&1
+      - name: Upload build logs
+        if: failure()
+        id: upload-build-logs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: build-logs
+          path: ./${{ matrix.distro }}-build.log
+      - name: Get log URL and metadata
+        if: failure()
+        id: log-metadata
+        env:
+          ARTIFACT_URL: ${{ steps.upload-build-logs.outputs.artifact-url }}
+        # yamllint disable rule:line-length
+        run: |
+          if [ -n "$ARTIFACT_URL" ]; then
+            log_url="$ARTIFACT_URL"
+          else
+            log_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+
+          commit_id="${{ github.sha }}"
+
+          {
+            echo "log_url=${log_url}"
+            echo "commit_id=${commit_id}"
+          } >> "$GITHUB_ENV"
+
+          {
+            echo "log_url=${log_url}"
+            echo "commit_id=${commit_id}"
+          } >> "$GITHUB_OUTPUT"
+        # yamllint enable rule:line-length
+      - name: Collect AI investigation context
+        if: failure()
+        id: investigation-context
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          BUILD_LOG_FILE: ./${{ matrix.distro }}-build.log
+          COMMIT_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          LOG_URL: ${{ steps.log-metadata.outputs.log_url }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          base_sha=""
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ]; then
+            base_sha="$PR_BASE_SHA"
+          elif [ -n "${BEFORE_SHA:-}" ] && \
+            [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            base_sha="$BEFORE_SHA"
+          elif git rev-parse "${COMMIT_SHA}^" >/dev/null 2>&1; then
+            base_sha="$(git rev-parse "${COMMIT_SHA}^")"
+          fi
+
+          changed_files="Unable to determine changed files"
+          commit_diff_excerpt="Unable to determine commit diff excerpt"
+          if [ -n "$base_sha" ] && \
+            git cat-file -e "${base_sha}^{commit}" >/dev/null 2>&1; then
+            changed_files="$(git diff --name-status "$base_sha" "$COMMIT_SHA" \
+              | sed '/^$/d' | head -n 80 || true)"
+            commit_diff_excerpt="$(git diff --minimal --unified=1 "$base_sha" "$COMMIT_SHA" \
+              | head -c 4000 || true)"
+          fi
+
+          log_file_count="0"
+          log_files="No saved build logs found"
+          if [ -f "$BUILD_LOG_FILE" ]; then
+            log_file_count="1"
+            log_files="$BUILD_LOG_FILE"
+          fi
+
+          error_excerpt="$(rg -n -i \
+            'error|failed|failure|exception|traceback|fatal|not found|undefined' \
+            "$BUILD_LOG_FILE" 2>/dev/null | head -n 80 | head -c 4000 || true)"
+          if [ -z "$error_excerpt" ]; then
+            error_excerpt="No obvious error keywords were found in saved build logs."
+          fi
+
+          DELIM="EOF_$(uuidgen)"
+          {
+            printf "evidence<<%s\n" "$DELIM"
+            printf "run_url: %s\n" "$LOG_URL"
+            printf "event_name: %s\n" "$EVENT_NAME"
+            printf "ref_name: %s\n" "$REF_NAME"
+            printf "commit_sha: %s\n" "$COMMIT_SHA"
+            printf "base_sha: %s\n" "${base_sha:-unknown}"
+            printf "log_file_count: %s\n" "$log_file_count"
+            printf "\n[changed_files]\n%s\n" "$changed_files"
+            printf "\n[build_output_files]\n%s\n" "$log_files"
+            printf "\n[error_excerpt]\n%s\n" "$error_excerpt"
+            printf "\n[git_diff_excerpt]\n%s\n" "$commit_diff_excerpt"
+            printf "%s\n" "$DELIM"
+          } >> "$GITHUB_OUTPUT"
+      - name: AI Linter Analysis
+        if: failure()
+        uses: actions/ai-inference@af6ad2c4ac4edf01884054fc3a6caa6d2567c13a # 2.0.8
+        id: ai-linter-analysis
+        with:
+          enable-github-mcp: true
+          github-mcp-token: ${{ secrets.GITHUB_MCP_TOKEN }} # zizmor: ignore[secrets-outside-env]
+          github-mcp-toolsets: context,repos,pull_requests,issues,actions
+          model: mistral-ai/Ministral-3B
+          prompt: |
+            Analyze this failed building workflow run:
+
+            Use available GitHub MCP tools first to collect information from:
+            - this workflow run and its job/step failures
+            - related workflow logs/artifacts
+            - commit/PR changed files and diffs
+            - repository context relevant to linter configuration
+
+            Repository: ${{ github.repository }}
+            Run ID: ${{ github.run_id }}
+            Ref: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Log URL: ${{ steps.log-metadata.outputs.log_url }}
+
+            If a required tool/action is unavailable, use the fallback evidence
+            below and clearly state the limitation.
+
+            Output format requirements:
+            - Diagnosis
+            - Why this is likely the root cause (cite evidence snippets)
+            - Proposed fix (exact unified diff)
+            - Confidence level (high/medium/low)
+            - What additional data would reduce uncertainty
+
+            Evidence:
+            ${{ steps.investigation-context.outputs.evidence }}
+          system-prompt: |
+            You are an expert software engineer who specializes in
+            diagnosing and fixing software build and runtime failures.
+            Always provide structured reasoning and propose concrete fixes
+            when possible.
+
+            Task: Determine the most probable root cause for this failed
+            build workflow run.
+
+            Execution rules:
+            - Prioritize collecting evidence using available GitHub MCP tools.
+            - Cross-reference findings across workflow logs, run metadata,
+              changed files, and commit diff.
+            - If MCP access fails or specific data cannot be fetched, proceed
+              with provided fallback evidence and explicitly mention missing
+              data.
+
+            Objectives:
+            1. **Diagnosis:** Identify patterns, anomalies, or dependencies
+            that could explain the failure. What is the most probable root
+            cause?
+            2. **Reasoning:** Explain why this root cause is plausible,
+            referencing specific snippets from the evidence sections.
+            3. **Resolution:** If a fix is evident, describe your reasoning
+            process and propose an exact code or configuration change.
+            Present your solution as a unified diff (diff format).
+            4. **Reflection:** If no clear fix is identifiable, summarize
+            which parts of the evidence are ambiguous and what further
+            information would be needed to proceed.
+
+            Goal: Deliver an insightful and technically sound explanation
+            that not only solves the issue but also strengthens
+            understanding of the system's behavior and failure patterns.
+          # jscpd:ignore-start
+      - name: Get the entire analysis output
+        id: get-analysis-output
+        if: failure()
+        env:
+          RESPONSE_FILE: ${{ steps.ai-linter-analysis.outputs.response-file }}
+        run: |
+          DELIM="EOF_$(uuidgen)"
+
+          analysis_response=""
+          printf -v analysis_response '%s\n%s' \
+            'AI analysis response was unavailable for this run.' \
+            'Check the workflow logs and artifacts for full details.'
+          if [ -n "${RESPONSE_FILE:-}" ] && [ -f "$RESPONSE_FILE" ]; then
+            analysis_response="$(cat "$RESPONSE_FILE")"
+          fi
+
+          {
+            printf "response<<%s\n" "$DELIM"
+            printf "%s\n" "$analysis_response"
+            printf "\n%s\n" "$DELIM"
+          } >> "$GITHUB_OUTPUT"
+        # jscpd:ignore-end
+      # yamllint disable rule:line-length
+      - uses: jayqi/failed-build-issue-action@1a893bbf43ef1c2a8705e2b115cd4f0fe3c5649b # 1.2.0
+        # yamllint enable rule:line-length
+        if: failure()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          title-template: >-
+            build workflow failed for ${{ matrix.distro }}
+          label-name: build-issue
+          body-template: |
+            A functional build failed for `${{ matrix.distro }}`.
+
+            Workflow run: `${{ github.run_id }}`
+            Commit: `${{ github.sha }}`
+            Ref: `${{ github.ref_name }}`
+
+            ## AI Analysis of Build Failures
+            ${{ steps.get-analysis-output.outputs.response }}
