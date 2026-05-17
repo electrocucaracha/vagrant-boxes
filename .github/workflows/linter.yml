@@ -105,6 +105,7 @@ jobs:
           BEFORE_SHA: ${{ github.event.before }}
           COMMIT_SHA: ${{ github.sha }}
           EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ github.token }}
           LOG_URL: ${{ steps.log-metadata.outputs.log_url }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           REF_NAME: ${{ github.ref_name }}
@@ -154,7 +155,7 @@ jobs:
           }
           trap cleanup_temp_logs EXIT
           if curl -fsSL \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             "${API_URL}/repos/${REPOSITORY}/actions/runs/${RUN_ID}/logs" \
             -o "$run_logs_zip"; then
