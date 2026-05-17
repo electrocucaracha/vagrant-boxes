@@ -18,6 +18,6 @@ rm -f /etc/ssh/ssh_host_ecdsa_key.pub
 rm -f /etc/ssh/ssh_host_ed25519_key
 rm -f /etc/ssh/ssh_host_ed25519_key.pub
 
-if [[ $PACKER_BUILD_NAME =~ ^generic-ubuntu(2204|2404)-((libvirt|virtualbox)-x64|utm-arm64)$ ]]; then
+if [[ $PACKER_BUILD_NAME =~ ^generic-ubuntu(2204|2404|2604)-((libvirt|virtualbox)-x64|utm-arm64)$ ]]; then
 	printf '%s\n' "@reboot root command bash -c 'export PATH=\$PATH:/usr/sbin ; export DEBIAN_FRONTEND=noninteractive ; export DEBCONF_NONINTERACTIVE_SEEN=true ; /usr/sbin/dpkg-reconfigure openssh-server &>/dev/null ; /bin/systemctl restart ssh.service ; rm --force /etc/cron.d/keys'" >/etc/cron.d/keys
 fi
