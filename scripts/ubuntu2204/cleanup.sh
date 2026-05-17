@@ -46,12 +46,12 @@ sed -i '/old-releases.ubuntu.com/d' /etc/hosts
 [ -f /var/log/dmesg.0 ] && rm --force /var/log/dmesg.0
 [ -f /var/log/dmesg ] && rm --force /var/log/dmesg
 
-[ -f /var/log/apt/history.log ] && truncate --size=0 truncate --size=0 /var/log/apt/history.log
-[ -f /var/log/apt/term.log ] && truncate --size=0 truncate --size=0 /var/log/apt/term.log
-[ -f /var/log/ubuntu-advantage-timer.log ] && truncate --size=0 truncate --size=0 /var/log/ubuntu-advantage-timer.log
-[ -f /var/log/ubuntu-advantage.log ] && truncate --size=0 truncate --size=0 /var/log/ubuntu-advantage.log
-[ -f /var/log/alternatives.log ] && truncate --size=0 truncate --size=0 /var/log/alternatives.log
-[ -f /var/log/dpkg.log ] && truncate --size=0 truncate --size=0 /var/log/dpkg.log
+[ -f /var/log/apt/history.log ] && truncate --size=0 /var/log/apt/history.log
+[ -f /var/log/apt/term.log ] && truncate --size=0 /var/log/apt/term.log
+[ -f /var/log/ubuntu-advantage-timer.log ] && truncate --size=0 /var/log/ubuntu-advantage-timer.log
+[ -f /var/log/ubuntu-advantage.log ] && truncate --size=0 /var/log/ubuntu-advantage.log
+[ -f /var/log/alternatives.log ] && truncate --size=0 /var/log/alternatives.log
+[ -f /var/log/dpkg.log ] && truncate --size=0 /var/log/dpkg.log
 [ -f /var/log/kern.log ] && truncate --size=0 /var/log/kern.log
 [ -f /var/log/syslog ] && truncate --size=0 /var/log/syslog
 
