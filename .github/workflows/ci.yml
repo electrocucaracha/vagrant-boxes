@@ -174,7 +174,7 @@ jobs:
           DEBUG: true
           PROVIDERS: virtualbox
           DISTROS: ${{ matrix.distro }}
-        run: ./build.sh > "${DISTROS}-build.log" 2>&1
+        run: ./build.sh | tee "${DISTROS}-build.log"
       - name: Upload build logs
         if: failure()
         id: upload-build-logs
