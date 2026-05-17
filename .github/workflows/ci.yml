@@ -143,6 +143,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: vm-self-hosted
+    env:
+      PACKER_CACHE_DIR: ~/.cache/packer
     permissions:
       contents: read
       issues: write
@@ -154,6 +156,15 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
           persist-credentials: false
+      - name: Restore packer download cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # 5.0.5
+        with:
+          path: ${{ env.PACKER_CACHE_DIR }}
+          key: >-
+            ${{ runner.os }}-packer-${{ matrix.distro }}-${{ hashFiles('generic-virtualbox-x64.json', 'build.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-packer-${{ matrix.distro }}-
+            ${{ runner.os }}-packer-
       - name: Install build prerequisites
         env:
           DISTRO: ${{ matrix.distro }}
@@ -272,7 +283,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: AI Build Output Analysis
         if: failure()
-        uses: actions/ai-inference@af6ad2c4ac4edf01884054fc3a6caa6d2567c13a # 2.0.8
+        uses: actions/ai-inference@17ff458cb182449bbb2e43701fcd98f6af8f6570 # 2.1.0
         id: ai-build-output-analysis
         with:
           enable-github-mcp: true
