@@ -7,4 +7,5 @@
 # which accompanies this distribution, and is available at
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
-theme: jekyll-theme-cayman
+remote_theme: just-the-docs/just-the-docs
+enable_copy_code_button: true
