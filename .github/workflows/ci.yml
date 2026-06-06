@@ -23,7 +23,7 @@ jobs:
       code: ${{ steps.functional-matrix.outputs.run_functional }}
       distros: ${{ steps.functional-matrix.outputs.distros }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # 6.0.3
         with:
           persist-credentials: false
       - name: Setup Go
@@ -115,7 +115,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # 6.0.3
         with:
           persist-credentials: false
       - name: Install ShellSpec
@@ -132,7 +132,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # 6.0.3
         with:
           persist-credentials: false
       - name: Check broken links
@@ -153,7 +153,7 @@ jobs:
       matrix:
         distro: ${{ fromJson(needs.changes.outputs.distros) }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # 6.0.3
         with:
           persist-credentials: false
       - name: Restore packer download cache
@@ -283,7 +283,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: AI Build Output Analysis
         if: failure()
-        uses: actions/ai-inference@17ff458cb182449bbb2e43701fcd98f6af8f6570 # 2.1.0
+        uses: actions/ai-inference@a7805884c80886efc241e94a5351df715968a0ad # 2.1.1
         id: ai-build-output-analysis
         with:
           enable-github-mcp: true
