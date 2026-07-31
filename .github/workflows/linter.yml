@@ -98,7 +98,7 @@ jobs:
         # yamllint enable rule:line-length
       - name: AI Linter Analysis
         if: failure()
-        uses: actions/ai-inference@a7805884c80886efc241e94a5351df715968a0ad # 2.1.1
+        uses: actions/ai-inference@2c43c91ae16266ca159d311430343c67a5ffa222 # 3
         id: ai-linter-analysis
         with:
           model: mistral-ai/Ministral-3B
