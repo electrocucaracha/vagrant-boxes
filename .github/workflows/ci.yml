@@ -27,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # 6.4.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # 7.0.0
         with:
           go-version: "^1.26"
           cache: false
@@ -36,7 +36,7 @@ jobs:
       - name: Run scc tool for counting lines of code
         run: scc --format wide
       # yamllint disable rule:line-length
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # 4.0.1
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # 4.0.3
         # yamllint enable rule:line-length
         id: filter
         with:
@@ -137,7 +137,7 @@ jobs:
           persist-credentials: false
       - name: Check broken links
         # yamllint disable rule:line-length
-        uses: tcort/github-action-markdown-link-check@e7c7a18363c842693fadde5d41a3bd3573a7a225 # 1.1.2
+        uses: tcort/github-action-markdown-link-check@e047c5b37f24ab722bbef1a27b6fab7f96bc4068 # 1.1.3
   functional-test:
     name: Execute functional tests on self-hosted runner
     needs: changes
@@ -157,7 +157,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Restore packer download cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # 5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # 6.1.0
         with:
           path: ${{ env.PACKER_CACHE_DIR }}
           key: >-
@@ -283,7 +283,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: AI Build Output Analysis
         if: failure()
-        uses: actions/ai-inference@a7805884c80886efc241e94a5351df715968a0ad # 2.1.1
+        uses: actions/ai-inference@2c43c91ae16266ca159d311430343c67a5ffa222 # 3
         id: ai-build-output-analysis
         with:
           enable-github-mcp: true
