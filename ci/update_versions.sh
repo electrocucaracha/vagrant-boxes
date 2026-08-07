@@ -21,9 +21,32 @@ if ! command -v uvx >/dev/null; then
 fi
 uvx pre-commit autoupdate
 
+resolve_action_commit_hash() {
+	local action=$1
+	local version_pattern=$2
+
+	git ls-remote --tags "https://github.com/$action" |
+		awk -v version_pattern="$version_pattern" '
+    {
+        sha=$1
+        tag=$2
+        deref = (tag ~ /\^\{\}$/) ? 1 : 0
+        sub(/^refs\/tags\//, "", tag)
+        sub(/\^\{\}$/, "", tag)
+        if (tag ~ version_pattern) {
+            sortkey=tag
+            sub(/^[vV]/, "", sortkey)
+            print sortkey "\t" deref "\t" sha "\t" tag
+        }
+    }' |
+		sort -V -k1,1 -k2,2n |
+		tail -1 |
+		awk -F'\t' '{ printf "%s # %s\n", $3, $4 }'
+}
+
 # Update GitHub Action commit hashes
-gh_actions=$(grep -r "uses: [A-Za-z0-9_.-]*/[\_a-z\-]*@" .github/ | sed 's/@.*//' | awk -F ': ' '{ print $3 }' | sort -u)
-exceptions=('reviewdog/action-misspell' 'actions/attest-build-provenance' 'GrantBirki/git-diff-action' 'golangci/golangci-lint-action' 'actions/checkout')
+gh_actions=$(grep -rhoE 'uses: [^@]+@' .github | sed -E 's/uses: ([^@]+)@/\1/' | sort -u)
+exceptions=('reviewdog/action-misspell' 'actions/attest-build-provenance' 'GrantBirki/git-diff-action' 'golangci/golangci-lint-action' 'actions/checkout' 'actions/upload-artifact')
 # Actions pinned to a specific version and excluded from auto-updates.
 # Remove an entry only once the underlying issue is confirmed resolved.
 # austenstone/copilot-cli: v3.0+ depends on actions/setup-copilot@v0 which does
@@ -42,9 +65,9 @@ for action in $gh_actions; do
 		continue
 	fi
 	if [[ ${exceptions[*]} =~ (^|[^[:alpha:]])$action([^[:alpha:]]|$) ]]; then
-		commit_hash=$(git ls-remote "https://github.com/$action" | grep 'refs/tags/[v]\?[0-9][0-9\.]*\^{}$' | sed 's|refs/tags/[vV]\?[\.]\?||g; s|\^{}$||g' | sort -u -k2 -V | tail -1 | awk '{ printf "%s # %s\n",$1,$2 }')
+		commit_hash=$(resolve_action_commit_hash "$action" '^v?[0-9]+(\.[0-9]+)*$')
 	else
-		commit_hash=$(git ls-remote "https://github.com/$action" | grep 'refs/tags/[v]\?[0-9][0-9\.]*$' | sed 's|refs/tags/[vV]\?[\.]\?||g' | sort -u -k2 -V | tail -1 | awk '{ printf "%s # %s\n",$1,$2 }')
+		commit_hash=$(resolve_action_commit_hash "$action" '^[vV]?[0-9]+(\.[0-9]+)*$')
 	fi
 	# shellcheck disable=SC2267
 	grep -ElRZ "uses: $action@" .github/ | xargs -0 -l sed -i -e "s|uses: $action@.*|uses: $action@$commit_hash|g"
