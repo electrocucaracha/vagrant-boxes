@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.4.0] - 2026-08-07
+
+### Added
+
+- Enabled automatic text style consistency checking and correction for documentation and prose files through the fmt target in the Makefile. [c532d710](https://github.com/electrocucaracha/vagrant-boxes/commit/c532d710fb68e59b4fe48f56dc7d766388e9293d)
+
+## [4.3.1] - 2026-08-07
+
+### Changed
+
+- Optimized lint and fmt tasks by automatically removing node_modules and Python environments before running them to ensure consistent results across environments. [be199d59](https://github.com/electrocucaracha/vagrant-boxes/commit/be199d590e6d74805612e7c733dbf669ad3b51e7)
+
+## [4.3.0] - 2026-08-07
+
+### Added
+
+- Enabled consistent terminology usage across documentation and prose files by enforcing it through textlint rules. [09a232f7](https://github.com/electrocucaracha/vagrant-boxes/commit/09a232f7ab7e2df57153d572edef55f7d3eff0d5)
+
+## [4.2.2] - 2026-08-07
+
+### Fixed
+
+- The linter now checks all files in the codebase and deployments, potentially increasing reported issues for previously excluded files, thereby improving code quality and consistency without any breaking behavior or migration requirements. [8678c963](https://github.com/electrocucaracha/vagrant-boxes/commit/8678c9633e3d233c37f1d6947c6924671580122b)
+
+## [4.2.1] - 2026-08-07
+
+### Changed
+
+- Clarified terminology and capitalization in changelog to maintain uniform style across documentation without introducing any functional or behavioral modifications. [5ca286a0](https://github.com/electrocucaracha/vagrant-boxes/commit/5ca286a00eeb4f299cecf4bbe08fda11d029fa18)
+
+## [4.2.0] - 2026-08-07
+
+### Added
+
+- Introduced a comprehensive CHANGELOG.md file following the Keep a Changelog format and Semantic Versioning, enabling clear traceability for releases and improving project transparency with consistent documentation in a single location. [61ba3e7e](https://github.com/electrocucaracha/vagrant-boxes/commit/61ba3e7e68aa8907d23ce69480f8f6117093f2ea)
+
 ## [4.1.0] - 2026-08-07
 
 ### Added
