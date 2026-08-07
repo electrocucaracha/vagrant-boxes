@@ -56,7 +56,6 @@ jobs:
           LINTER_RULES_PATH: "/"
           SAVE_SUPER_LINTER_OUTPUT: "true"
           DEFAULT_BRANCH: "${{ github.head_ref || github.ref_name }}"
-          IGNORE_GITIGNORED_FILES: "true"
       - name: Upload linter logs
         if: failure()
         id: upload-linter-logs

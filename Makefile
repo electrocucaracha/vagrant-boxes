@@ -20,7 +20,6 @@ lint:
 	-e RUN_LOCAL=true \
 	-e USE_FIND_ALGORITHM=true \
 	-e VALIDATE_ALL_CODEBASE=true \
-	-e IGNORE_GITIGNORED_FILES=true \
 	-e LINTER_RULES_PATH=/ \
 	ghcr.io/super-linter/super-linter
 
