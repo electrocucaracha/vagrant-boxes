@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Stabilized CI workflows to rely on the latest stable versions of GitHub Actions, thereby ensuring improved security, bug fixes, and compatibility with upstream changes without altering workflow logic. [6d42ecb0](https://github.com/electrocucaracha/vagrant-boxes/commit/6d42ecb0cf8b0f096214dabe044d1f1acf183a25)
+- Stabilized CI workflows to rely on the latest stable versions of GitHub Actions, thereby ensuring improved security, bugfixes, and compatibility with upstream changes without altering workflow logic. [6d42ecb0](https://github.com/electrocucaracha/vagrant-boxes/commit/6d42ecb0cf8b0f096214dabe044d1f1acf183a25)
 
 ## [3.1.9] - 2026-08-07
 
@@ -43,13 +43,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated the pre-commit hook for ai-prepare-commit-msg to ensure compatibility with the latest features and bug fixes without introducing any functional modifications. [08a1cc02](https://github.com/electrocucaracha/vagrant-boxes/commit/08a1cc02f8a40b27c0b17b5395eb31b66d75400f)
+- Updated the pre-commit hook for ai-prepare-commit-msg to ensure compatibility with the latest features and bugfixes without introducing any functional modifications. [08a1cc02](https://github.com/electrocucaracha/vagrant-boxes/commit/08a1cc02f8a40b27c0b17b5395eb31b66d75400f)
 
 ## [3.1.6] - 2026-06-05
 
 ### Fixed
 
-- Resolved linting issues caused by stricter rules in newer markdownlint version by reverting to v0.47.0 for consistent behavior across all markdown files. [d0dd9340](https://github.com/electrocucaracha/vagrant-boxes/commit/d0dd9340d076182378dbfdd472613213fbdf2886)
+- Resolved linting issues caused by stricter rules in newer markdownlint version by reverting to v0.47.0 for consistent behavior across all Markdown files. [d0dd9340](https://github.com/electrocucaracha/vagrant-boxes/commit/d0dd9340d076182378dbfdd472613213fbdf2886)
 
 ## [3.1.5] - 2026-06-05
 
@@ -67,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- BREAKING: Stabilized pre-commit hooks to their latest versions, ensuring consistent code quality checks across the repository by incorporating recent bug fixes and improvements, but this update may introduce new linting rules requiring adjustments to existing markdown files or commit message formats. [2c5ad4a3](https://github.com/electrocucaracha/vagrant-boxes/commit/2c5ad4a3f379f3af4e19f989a3ce4d454caa731b)
+- BREAKING: Stabilized pre-commit hooks to their latest versions, ensuring consistent code quality checks across the repository by incorporating recent bugfixes and improvements, but this update may introduce new linter rules requiring adjustments to existing Markdown files or commit message formats. [2c5ad4a3](https://github.com/electrocucaracha/vagrant-boxes/commit/2c5ad4a3f379f3af4e19f989a3ce4d454caa731b)
 
 ## [3.1.2] - 2026-06-05
 
@@ -91,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Upgraded the AI Linter Analysis step to version 2.1.0 of the actions/ai-inference action which may include bug fixes new features and performance improvements from upstream helping maintain workflow reliability and security by keeping dependencies up to date. [2d779e65](https://github.com/electrocucaracha/vagrant-boxes/commit/2d779e658d3eed4453392c2c9d7afba339b80285)
+- Upgraded the AI Linter Analysis step to version 2.1.0 of the actions/ai-inference action which may include bugfixes new features and performance improvements from upstream helping maintain workflow reliability and security by keeping dependencies up to date. [2d779e65](https://github.com/electrocucaracha/vagrant-boxes/commit/2d779e658d3eed4453392c2c9d7afba339b80285)
 
 ## [3.0.5] - 2026-05-17
 
@@ -103,7 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated the ai-prepare-commit-msg pre-commit hook to ensure that developers benefit from the latest improvements and bug fixes in their commit message preparation workflow. [a033b062](https://github.com/electrocucaracha/vagrant-boxes/commit/a033b0623de20ac0d2ef3c4d7d7f871a034d0900)
+- Updated the ai-prepare-commit-msg pre-commit hook to ensure that developers benefit from the latest improvements and bugfixes in their commit message preparation workflow. [a033b062](https://github.com/electrocucaracha/vagrant-boxes/commit/a033b0623de20ac0d2ef3c4d7d7f871a034d0900)
 
 ## [3.0.3] - 2026-05-17
 
@@ -199,7 +199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Optimized the workflows list in documentation to improve readability and consistency by replacing bulleted list with markdown table without affecting workflow behavior or API contracts. [8615d665](https://github.com/electrocucaracha/vagrant-boxes/commit/8615d6655f5f10def1cd263201435335e6b1d050)
+- Optimized the workflows list in documentation to improve readability and consistency by replacing bulleted list with Markdown table without affecting workflow behavior or API contracts. [8615d665](https://github.com/electrocucaracha/vagrant-boxes/commit/8615d6655f5f10def1cd263201435335e6b1d050)
 
 ## [2.9.1] - 2026-05-14
 
@@ -217,13 +217,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Enabled direct links to Vagrant Cloud pages for Ubuntu 22.04 and 24.04 boxes in the README file making it easier for users to access relevant resources and improving discoverability of supported Ubuntu releases. [c42cb73c](https://github.com/electrocucaracha/vagrant-boxes/commit/c42cb73cf1a9a67739a589dd1056b1ceaf7dc99a)
+- Enabled direct links to Vagrant Cloud pages for Ubuntu 22.04 and 24.04 boxes in the readme file making it easier for users to access relevant resources and improving discoverability of supported Ubuntu releases. [c42cb73c](https://github.com/electrocucaracha/vagrant-boxes/commit/c42cb73cf1a9a67739a589dd1056b1ceaf7dc99a)
 
 ## [2.8.0] - 2026-05-13
 
 ### Added
 
-- Enabled clear documentation of GitHub Actions workflows and automation for contributors by introducing a README file in the .github/workflows directory that describes available ci, linter, and update workflows as well as the "super-linter-issue" label. [a708a00f](https://github.com/electrocucaracha/vagrant-boxes/commit/a708a00f460a8296d13f8478593c6d468f34f66f)
+- Enabled clear documentation of GitHub Actions workflows and automation for contributors by introducing a readme file in the .github/workflows directory that describes available ci, linter, and update workflows as well as the "super-linter-issue" label. [a708a00f](https://github.com/electrocucaracha/vagrant-boxes/commit/a708a00f460a8296d13f8478593c6d468f34f66f)
 
 ## [2.7.0] - 2026-05-13
 
@@ -337,7 +337,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Streamlined project documentation by clarifying contributor workflow and project overview in separate guides, CONTRIBUTING.md and README respectively. [91319694](https://github.com/electrocucaracha/vagrant-boxes/commit/91319694cba2065a5e54a2faf67be795d0f61c01)
+- Streamlined project documentation by clarifying contributor workflow and project overview in separate guides, CONTRIBUTING.md and readme respectively. [91319694](https://github.com/electrocucaracha/vagrant-boxes/commit/91319694cba2065a5e54a2faf67be795d0f61c01)
 
 ## [1.6.0] - 2026-05-05
 
@@ -373,13 +373,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Enabled all linters for the repository's build process and linting rules resulting in improved code quality checks without introducing any breaking changes. [eeeeb147](https://github.com/electrocucaracha/vagrant-boxes/commit/eeeeb1470ec55a23e984d7ba826680ddbd8880da)
+- Enabled all linters for the repository's build process and linter rules resulting in improved code quality checks without introducing any breaking changes. [eeeeb147](https://github.com/electrocucaracha/vagrant-boxes/commit/eeeeb1470ec55a23e984d7ba826680ddbd8880da)
 
 ## [1.3.2] - 2026-04-29
 
 ### Fixed
 
-- The GitHub Actions workflow for CI has been stabilized to allow linter rules to be unsynced, enabling the validation of bash execution and Git commitlint on all codebase files by default. [edd48afc](https://github.com/electrocucaracha/vagrant-boxes/commit/edd48afc4c4b8d8c8a271d07e776ae552ffab73a)
+- The GitHub Actions workflow for CI has been stabilized to allow linter rules to be unsynced, enabling the validation of Bash execution and Git commitlint on all codebase files by default. [edd48afc](https://github.com/electrocucaracha/vagrant-boxes/commit/edd48afc4c4b8d8c8a271d07e776ae552ffab73a)
 
 ## [1.3.1] - 2026-04-29
 
