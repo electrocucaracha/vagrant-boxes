@@ -14,8 +14,13 @@ test:
 	@command -v shellspec > /dev/null || curl -fsSL https://git.io/shellspec | sh -s -- --yes
 	@PATH="$(HOME)/.local/bin:$$PATH" shellspec
 
+.PHONY: cleanup
+cleanup:
+	rm -rf node_modules
+	rm -rf .tox/ .venv/
+
 .PHONY: lint
-lint:
+lint: cleanup
 	$(SUDO_CMD) $(DOCKER_CMD) run --rm -v $$(pwd):/tmp/lint --platform linux/amd64 \
 	-e RUN_LOCAL=true \
 	-e USE_FIND_ALGORITHM=true \
@@ -24,7 +29,7 @@ lint:
 	ghcr.io/super-linter/super-linter
 
 .PHONY: fmt
-fmt:
+fmt: cleanup
 	command -v shfmt > /dev/null || curl -s "https://i.jpillora.com/mvdan/sh!!?as=shfmt" | bash
 	find . \( -path './spec' -o -path './spec/*' \) -prune -o -type f \( -name '*.sh' -o -name '.credentialsrc' \) -print0 | xargs -0r shfmt -l -w -s
 	npx --yes prettier . --write --ignore-unknown
