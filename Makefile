@@ -32,7 +32,9 @@ lint: cleanup
 fmt: cleanup
 	command -v shfmt > /dev/null || curl -s "https://i.jpillora.com/mvdan/sh!!?as=shfmt" | bash
 	find . \( -path './spec' -o -path './spec/*' \) -prune -o -type f \( -name '*.sh' -o -name '.credentialsrc' \) -print0 | xargs -0r shfmt -l -w -s
-	npx --yes textlint . --fix
-	npx --yes prettier . --write --ignore-unknown
+	npm list --depth=0 textlint textlint-rule-terminology >/dev/null 2>&1 || npm install --save-dev textlint textlint-rule-terminology
+	npx --no-install textlint . --fix
+	npm list --depth=0 prettier >/dev/null 2>&1 || npm install --save-dev prettier
+	npx --no-install prettier . --write --ignore-unknown
 	command -v yamlfmt > /dev/null || curl -s "https://i.jpillora.com/google/yamlfmt!!" | bash
 	find . -type f \( -name '*.yaml' -o -name '*.yml' \) -print0 | xargs -0r yamlfmt
