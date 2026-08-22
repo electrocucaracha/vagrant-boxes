@@ -1,4 +1,3 @@
----
 # Jekyll front-matter provides the page H1 via the `title:` key; allow a
 # second H1 in the body so authors can write self-contained documents.
 MD025: false
