@@ -361,7 +361,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Resolved incompatibilities between zizmor and ava@7.0.0 by adding a zizmor ignore annotation for secrets usage outside of environment variables and downgrading markdownlint-cli to v0.44.0, ensuring compatibility with the CI's Node.js engine version. [2278a5b7](https://github.com/electrocucaracha/vagrant-boxes/commit/2278a5b776def1e18a7540fb850acd4ea47f56cc)
+- Resolved incompatibilities between zizmor and `ava@7.0.0` by adding a zizmor ignore annotation for secrets usage outside of environment variables and downgrading markdownlint-cli to v0.44.0, ensuring compatibility with the CI's Node.js engine version. [2278a5b7](https://github.com/electrocucaracha/vagrant-boxes/commit/2278a5b776def1e18a7540fb850acd4ea47f56cc)
 
 ## [2.5.0] - 2026-05-06
 
