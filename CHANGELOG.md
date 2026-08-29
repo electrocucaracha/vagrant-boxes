@@ -9,6 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.3] - 2026-08-29
+
+### Changed
+
+- Clarified the project's purpose and scope by updating the readme to accurately describe the project as an automated build tool, improving documentation for readability and consistency. [c9f8ac15](https://github.com/electrocucaracha/vagrant-boxes/commit/c9f8ac15bb56857042a45d417b93116212293d2e)
+
+## [6.0.2] - 2026-08-29
+
+### Changed
+
+- Upgrading the ai-prepare-commit-msg hook to version 9.0.0 ensures compatibility with the latest pre-commit framework and includes upstream bugfixes, improving commit message generation reliability and continued support. [98bffb55](https://github.com/electrocucaracha/vagrant-boxes/commit/98bffb550a6e08cccec8c903993ef986cd039105)
+
+## [6.0.1] - 2026-08-29
+
+### Changed
+
+- Clarified the project's value proposition by expanding the README's overview and adding an architecture diagram to visually illustrate the workflow and relationships between components. [c5b24662](https://github.com/electrocucaracha/vagrant-boxes/commit/c5b246622faf6b7daeed6e6837f37db8a59960fe)
+
+## [6.0.0] - 2026-08-21
+
+### Removed
+
+- Simplified configuration files by eliminating unnecessary leading YAML document separators, which were present in multiple files and could cause confusion for tools that do not expect explicit document delimiters, without introducing any functional changes or affecting breaking behavior or migration requirements. [181e0024](https://github.com/electrocucaracha/vagrant-boxes/commit/181e002432929a4725204f98f31c5c710915662c)
+
+## [5.0.0] - 2026-08-21
+
+### Removed
+
+- Simplified the funding config by removing the .yamlfmt configuration file and YAML document start marker, which is now handled by other tools in the workflow. [8019bc5b](https://github.com/electrocucaracha/vagrant-boxes/commit/8019bc5b01a8ff3a5ac7181773555491f898c4bb)
+
+## [4.7.0] - 2026-08-21
+
+### Added
+
+- Enabled project sponsorship links on the repository, allowing users to support ongoing development and maintenance through GitHub Sponsors and Buy Me a Coffee profiles. [51fc30f8](https://github.com/electrocucaracha/vagrant-boxes/commit/51fc30f8bdb135ab1a776708a581050b6fa7e888)
+
+## [4.6.3] - 2026-08-21
+
+### Changed
+
+- Upgraded the pre-commit configuration to use the latest version of ai-prepare-commit-msg, specifically v7.1.0, ensuring compatibility with recent pre-commit versions and potentially improving commit message suggestions. [e924498f](https://github.com/electrocucaracha/vagrant-boxes/commit/e924498fdc3459c006a39fa0d49d74d8c59db17e)
+
+## [4.6.2] - 2026-08-21
+
+### Fixed
+
+- The Makefile now checks for the presence of textlint and prettier before use, ensuring consistent formatting regardless of setup, and installs these tools locally if missing to prevent failures in clean environments and reduce setup friction for developers. [587cf994](https://github.com/electrocucaracha/vagrant-boxes/commit/587cf994a04bb91b030c6ce5eade6aa3753f7cde)
+
+## [4.6.1] - 2026-08-13
+
+### Changed
+
+- Clarified and standardized changelog entries to enhance readability and usability for users and contributors by providing clear context and consistent terminology. [5d652992](https://github.com/electrocucaracha/vagrant-boxes/commit/5d652992f687abb5c252ecadd488cb61d9ca649c)
+
 ## [4.6.0] - 2026-08-07
 
 ### Added
