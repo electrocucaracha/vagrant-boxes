@@ -54,7 +54,7 @@ cat <<-EOF >/etc/netplan/01-netcfg.yaml
 	      dhcp6: false
 	      optional: true
 	      nameservers:
-               addresses: [1.1.1.1, 1.0.0.1, 8.8.8.8, 8.8.4.4]
+	               addresses: [1.1.1.1, 1.0.0.1, 8.8.8.8, 8.8.4.4]
 EOF
 
 # Apply the network plan configuration.
