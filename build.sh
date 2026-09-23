@@ -32,6 +32,8 @@ function _set_shell_options() {
 	set -o nounset
 	if [[ ${DEBUG:-false} == "true" ]]; then
 		set -o xtrace
+		export PACKER_LOG=1
+		export PACKER_LOG_PATH=/tmp/packer.log
 	fi
 }
 
