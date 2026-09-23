@@ -45,7 +45,7 @@ export DEBCONF_NONINTERACTIVE_SEEN=true
 # properly. A more permanent soulution is applied by the network
 # configuration script.
 sysctl net.ipv6.conf.all.disable_ipv6=1
-printf "nameserver 4.2.2.1\nnameserver 4.2.2.2\nnameserver 208.67.220.220\n" >/etc/resolv.conf
+printf "nameserver 1.1.1.1\nnameserver 1.0.0.1\nnameserver 8.8.8.8\nnameserver 8.8.4.4\n" >/etc/resolv.conf
 
 # Disable upgrades to new releases, and prevent notifications from being added to motd.
 sed -i -e 's/^Prompt=.*$/Prompt=never/' /etc/update-manager/release-upgrades

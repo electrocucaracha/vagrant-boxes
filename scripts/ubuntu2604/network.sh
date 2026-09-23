@@ -55,14 +55,14 @@ cat <<-EOF >/etc/netplan/01-netcfg.yaml
 	      dhcp6: false
 	      optional: true
 	      nameservers:
-	        addresses: [4.2.2.1, 4.2.2.2, 208.67.220.220]
+               addresses: [1.1.1.1, 1.0.0.1, 8.8.8.8, 8.8.4.4]
 EOF
 
 # Apply the network plan configuration.
 netplan generate
 
 # Ensure a nameserver is being used that won't return an IP for non-existent domain names.
-sed -i -e "s/#DNS=.*/DNS=4.2.2.1 4.2.2.2 208.67.220.220/g" /etc/systemd/resolved.conf
+sed -i -e "s/#DNS=.*/DNS=1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4/g" /etc/systemd/resolved.conf
 sed -i -e "s/#FallbackDNS=.*/FallbackDNS=/g" /etc/systemd/resolved.conf
 sed -i -e "s/#Domains=.*/Domains=/g" /etc/systemd/resolved.conf
 sed -i -e "s/#DNSSEC=.*/DNSSEC=yes/g" /etc/systemd/resolved.conf
