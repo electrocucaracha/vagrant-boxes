@@ -19,34 +19,18 @@ rm -f /etc/ssh/ssh_host_ed25519_key
 rm -f /etc/ssh/ssh_host_ed25519_key.pub
 
 rm -f /etc/cron.d/keys
-cat <<-'EOF' >/usr/local/sbin/regenerate-ssh-host-keys.sh
-	#!/bin/bash
-
-	export PATH="$PATH:/usr/sbin"
-	export DEBIAN_FRONTEND=noninteractive
-	export DEBCONF_NONINTERACTIVE_SEEN=true
-
-	for i in {1..5}; do
-		if /usr/sbin/dpkg-reconfigure openssh-server >>/var/log/ssh-host-keys-reconfigure.log 2>&1; then
-			exit 0
-		fi
-
-		echo "retry $i failed" >>/var/log/ssh-host-keys-reconfigure.log
-		sleep 15
-	done
-
-	exit 1
-EOF
-chmod 0755 /usr/local/sbin/regenerate-ssh-host-keys.sh
+rm -f /usr/local/sbin/regenerate-ssh-host-keys.sh
+# NOTE: dpkg-reconfigure restarts ssh.service, which deadlocks with Before=ssh.service
 cat <<-'EOF' >/etc/systemd/system/regenerate-ssh-host-keys.service
 	[Unit]
 	Description=Regenerate SSH host keys before SSH starts
 	ConditionPathExists=!/etc/ssh/ssh_host_rsa_key
-	Before=ssh.service
+	Before=ssh.service ssh.socket
 
 	[Service]
 	Type=oneshot
-	ExecStart=/usr/local/sbin/regenerate-ssh-host-keys.sh
+	ExecStart=/usr/bin/ssh-keygen -A
+	TimeoutStartSec=120
 	RemainAfterExit=yes
 
 	[Install]

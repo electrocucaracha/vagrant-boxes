@@ -69,7 +69,7 @@ autoinstall:
     - sed -i "s/#FallbackDNS=.*/FallbackDNS=1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4/g" /etc/systemd/resolved.conf
     - systemctl restart systemd-resolved
   late-commands:
-    - sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"$/GRUB_CMDLINE_LINUX_DEFAULT="\1 net.ifnames=0 biosdevname=0"/g' /target/etc/default/grub
+    - sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"$/GRUB_CMDLINE_LINUX_DEFAULT="\1 net.ifnames=0 biosdevname=0 console=tty0 console=ttyS0,115200n8"/g' /target/etc/default/grub
     - sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=" net.ifnames/GRUB_CMDLINE_LINUX_DEFAULT="net.ifnames/g' /target/etc/default/grub
     - printf 'PermitRootLogin yes\nPasswordAuthentication yes\n' > /target/etc/ssh/sshd_config.d/99-packer.conf
     - curtin in-target --target=/target -- /bin/bash -c 'id -u vagrant >/dev/null 2>&1 || /usr/sbin/useradd --create-home --shell /bin/bash vagrant'
