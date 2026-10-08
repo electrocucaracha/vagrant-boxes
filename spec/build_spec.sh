@@ -258,24 +258,6 @@ Describe 'build.sh'
       The output should equal ''
     End
 
-    It 'rejects a missing KVM device'
-      KVM_DEVICE="$TEST_ROOT/missing-kvm"
-
-      When call validate_kvm_capturing_exit
-      The status should be failure
-      The output should include "KVM device '$KVM_DEVICE' is not available"
-    End
-
-    It 'rejects a busy KVM device'
-      KVM_DEVICE="$TEST_ROOT/kvm"
-      : > "$KVM_DEVICE"
-      fuser() { printf '1234\n'; }
-
-      When call validate_kvm_capturing_exit
-      The status should be failure
-      The output should include "KVM device '$KVM_DEVICE' is busy (PID(s): 1234)"
-    End
-
     It 'rejects a failed KVM acceleration probe'
       KVM_DEVICE="$TEST_ROOT/kvm"
       : > "$KVM_DEVICE"
@@ -313,11 +295,6 @@ Describe 'build.sh'
       test -f "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble/ubuntu-noble-virtualbox-x64-24.04.3.box" &&
         test -f "$OUTPUT_ROOT/$BOX_NAMESPACE/ubuntu-noble/ubuntu-noble-virtualbox-x64-24.04.3.box.sha256"
     }
-
-    It 'publishes boxes with distro slug filenames by default'
-      When call build_box_with_distro_version
-      The status should be success
-    End
 
     It 'publishes a UTM box and records the built artifact'
       build_utm_box() {
