@@ -1,10 +1,14 @@
 #!/bin/bash -x
 
-# If the TERM environment variable is set to dumb, tput will generate spurious error messages.
-[ "$TERM" == "dumb" ] && export TERM="vt100"
+NETWORK_SYSCTL_CONF=${NETWORK_SYSCTL_CONF:-/etc/sysctl.conf}
+NETWORK_HOSTNAME_FILE=${NETWORK_HOSTNAME_FILE:-/etc/hostname}
+NETWORK_HOSTS_FILE=${NETWORK_HOSTS_FILE:-/etc/hosts}
+NETWORK_NETPLAN_FILE=${NETWORK_NETPLAN_FILE:-/etc/netplan/01-netcfg.yaml}
+NETWORK_RESOLVED_CONF=${NETWORK_RESOLVED_CONF:-/etc/systemd/resolved.conf}
+NETWORK_SHUTDOWN_CMD=${NETWORK_SHUTDOWN_CMD:-shutdown}
 
 # shellcheck disable=SC2329
-retry() {
+network2604_retry() {
 	local COUNT=1
 	local DELAY=0
 	local RESULT=0
@@ -31,47 +35,56 @@ retry() {
 	return "${RESULT}"
 }
 
-# To allow for automated installs, we disable interactive configuration steps.
-export DEBIAN_FRONTEND=noninteractive
-export DEBCONF_NONINTERACTIVE_SEEN=true
+network2604_main() {
+	# If the TERM environment variable is set to dumb, tput will generate spurious error messages.
+	[ "$TERM" == "dumb" ] && export TERM="vt100"
 
-# Disable IPv6 for the current boot.
-sysctl net.ipv6.conf.all.disable_ipv6=1
+	# To allow for automated installs, we disable interactive configuration steps.
+	export DEBIAN_FRONTEND=noninteractive
+	export DEBCONF_NONINTERACTIVE_SEEN=true
 
-# Ensure IPv6 stays disabled.
-printf "\nnet.ipv6.conf.all.disable_ipv6 = 1\n" >>/etc/sysctl.conf
+	# Disable IPv6 for the current boot.
+	sysctl net.ipv6.conf.all.disable_ipv6=1
 
-# Set the hostname, and then ensure it will resolve properly.
-printf "ubuntu2604.localdomain\n" >/etc/hostname
-printf "\n127.0.0.1 ubuntu2604.localdomain\n\n" >>/etc/hosts
+	# Ensure IPv6 stays disabled.
+	printf "\nnet.ipv6.conf.all.disable_ipv6 = 1\n" >>"${NETWORK_SYSCTL_CONF}"
 
-cat <<-EOF >/etc/netplan/01-netcfg.yaml
-	network:
-	  version: 2
-	  renderer: networkd
-	  ethernets:
-	    eth0:
-	      dhcp4: true
-	      dhcp6: false
-	      optional: true
-	      nameservers:
-	               addresses: [1.1.1.1, 1.0.0.1, 8.8.8.8, 8.8.4.4]
-EOF
+	# Set the hostname, and then ensure it will resolve properly.
+	printf "ubuntu2604.localdomain\n" >"${NETWORK_HOSTNAME_FILE}"
+	printf "\n127.0.0.1 ubuntu2604.localdomain\n\n" >>"${NETWORK_HOSTS_FILE}"
 
-# Apply the network plan configuration.
-netplan generate
+	cat <<-EOF >"${NETWORK_NETPLAN_FILE}"
+		network:
+		  version: 2
+		  renderer: networkd
+		  ethernets:
+		    eth0:
+		      dhcp4: true
+		      dhcp6: false
+		      optional: true
+		      nameservers:
+		               addresses: [1.1.1.1, 1.0.0.1, 8.8.8.8, 8.8.4.4]
+	EOF
 
-# Ensure a nameserver is being used that won't return an IP for non-existent domain names.
-sed -i -e "s/#DNS=.*/DNS=1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4/g" /etc/systemd/resolved.conf
-sed -i -e "s/#FallbackDNS=.*/FallbackDNS=/g" /etc/systemd/resolved.conf
-sed -i -e "s/#Domains=.*/Domains=/g" /etc/systemd/resolved.conf
-sed -i -e "s/#DNSSEC=.*/DNSSEC=yes/g" /etc/systemd/resolved.conf
-sed -i -e "s/#Cache=.*/Cache=yes/g" /etc/systemd/resolved.conf
-sed -i -e "s/#DNSStubListener=.*/DNSStubListener=yes/g" /etc/systemd/resolved.conf
+	# Apply the network plan configuration.
+	netplan generate
 
-# Ensure the networking interfaces get configured on boot.
-systemctl enable systemd-networkd.service
+	# Ensure a nameserver is being used that won't return an IP for non-existent domain names.
+	sed -i -e "s/#DNS=.*/DNS=1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4/g" "${NETWORK_RESOLVED_CONF}"
+	sed -i -e "s/#FallbackDNS=.*/FallbackDNS=/g" "${NETWORK_RESOLVED_CONF}"
+	sed -i -e "s/#Domains=.*/Domains=/g" "${NETWORK_RESOLVED_CONF}"
+	sed -i -e "s/#DNSSEC=.*/DNSSEC=yes/g" "${NETWORK_RESOLVED_CONF}"
+	sed -i -e "s/#Cache=.*/Cache=yes/g" "${NETWORK_RESOLVED_CONF}"
+	sed -i -e "s/#DNSStubListener=.*/DNSStubListener=yes/g" "${NETWORK_RESOLVED_CONF}"
 
-# Reboot onto the new kernel (if applicable).
-(shutdown -r +1) &
-exit 0
+	# Ensure the networking interfaces get configured on boot.
+	systemctl enable systemd-networkd.service
+
+	# Reboot onto the new kernel (if applicable).
+	("${NETWORK_SHUTDOWN_CMD}" -r +1) &
+	return 0
+}
+
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+	network2604_main "$@"
+fi

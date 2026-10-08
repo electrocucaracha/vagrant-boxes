@@ -3,7 +3,7 @@
 # If the TERM environment variable is set to dumb, tput will generate spurious error messages.
 [ "$TERM" == "dumb" ] && export TERM="vt100"
 
-retry() {
+apt2404_retry() {
 	local COUNT=1
 	local DELAY=0
 	local RESULT=0
@@ -30,12 +30,19 @@ retry() {
 	return "${RESULT}"
 }
 
-error() {
+apt2404_error() {
 	if [ $? -ne 0 ]; then
 		printf "\n\nAPT failed... again.\n\n"
 		exit 1
 	fi
 }
+
+if [[ ${BASH_SOURCE[0]} != "$0" ]]; then
+	return 0
+fi
+
+retry() { apt2404_retry "$@"; }
+error() { apt2404_error; }
 
 # To allow for automated installs, we disable interactive configuration steps.
 export DEBIAN_FRONTEND=noninteractive

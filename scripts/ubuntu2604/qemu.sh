@@ -3,7 +3,7 @@
 # If the TERM environment variable is set to dumb, tput will generate spurious error messages.
 [ "$TERM" == "dumb" ] && export TERM="vt100"
 
-retry() {
+qemu2604_retry() {
 	local COUNT=1
 	local DELAY=0
 	local RESULT=0
@@ -30,35 +30,42 @@ retry() {
 	return "${RESULT}"
 }
 
-error() {
-	if [ $? -ne 0 ]; then
-		printf "\n\nqemu addons failed to install...\n\n"
-		exit 1
-	fi
+qemu2604_error() {
+	printf "\n\nqemu addons failed to install...\n\n"
 }
 
-# Bail if we are not running atop a QEMU-based hypervisor build.
-if [[ ! ${PACKER_BUILD_NAME:-} =~ ^generic-ubuntu(2204|2404)-utm-arm64$ ]] &&
-	[[ $(dmidecode -s system-product-name) != "KVM" && $(dmidecode -s system-manufacturer) != "QEMU" ]]; then
-	exit 0
+qemu2604_main() {
+	# Bail if we are not running atop a QEMU-based hypervisor build.
+	if [[ ! ${PACKER_BUILD_NAME:-} =~ ^generic-ubuntu(2204|2404)-utm-arm64$ ]] &&
+		[[ $(dmidecode -s system-product-name) != "KVM" && $(dmidecode -s system-manufacturer) != "QEMU" ]]; then
+		return 0
+	fi
+
+	# Install the QEMU using Yum.
+	printf "Installing the QEMU Tools.\n"
+
+	# To allow for automated installs, we disable interactive configuration steps.
+	export DEBIAN_FRONTEND=noninteractive
+	export DEBCONF_NONINTERACTIVE_SEEN=true
+
+	qemu2604_retry apt-get --assume-yes install qemu-guest-agent || {
+		qemu2604_error
+		return 1
+	}
+
+	# For some reason the VMWare tools are installed on QEMU guest images.
+	systemctl disable open-vm-tools.service
+
+	# Boosts the available entropy which allows the guest to start faster.
+	qemu2604_retry apt-get --assume-yes install haveged || {
+		qemu2604_error
+		return 1
+	}
+
+	# Autostart the haveged daemon.
+	systemctl enable haveged.service
+}
+
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+	qemu2604_main "$@"
 fi
-
-# Install the QEMU using Yum.
-printf "Installing the QEMU Tools.\n"
-
-# To allow for automated installs, we disable interactive configuration steps.
-export DEBIAN_FRONTEND=noninteractive
-export DEBCONF_NONINTERACTIVE_SEEN=true
-
-retry apt-get --assume-yes install qemu-guest-agent
-error
-
-# For some reason the VMWare tools are installed on QEMU guest images.
-systemctl disable open-vm-tools.service
-
-# Boosts the available entropy which allows the guest to start faster.
-retry apt-get --assume-yes install haveged
-error
-
-# Autostart the haveged daemon.
-systemctl enable haveged.service
