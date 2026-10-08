@@ -539,6 +539,25 @@ function _cleanup_utm_vm() {
 	utmctl delete "${vm_name}" >/dev/null
 }
 
+function _wait_for_kvm_users() {
+	local max_attempts=30
+	local attempt=1
+
+	while ${SUDO_CMD:-sudo} fuser /dev/kvm >/dev/null 2>&1; do
+		if ((attempt >= max_attempts)); then
+			echo "ERROR: /dev/kvm is still in use."
+			${SUDO_CMD:-sudo} fuser -v /dev/kvm || true
+			return 1
+		fi
+
+		echo "Waiting for users of /dev/kvm to exit... (${attempt}/${max_attempts})"
+		sleep 2
+		((attempt++))
+	done
+
+	return 0
+}
+
 function _build_box() {
 	local distro=${1:?distro is required}
 	local provider=${2:?provider is required}
@@ -564,11 +583,51 @@ function _build_box() {
 	if [[ ${provider} == "utm" ]]; then
 		_cleanup_utm_vm "${build_name}"
 	fi
+	if [[ ${provider} == "virtualbox" ]] && [[ -e /sys/module/kvm ]]; then
+		echo "Disabling KVM for VirtualBox build."
 
-	(
-		cd "${SCRIPT_DIR}"
-		VERSION="${box_version}" packer build -only="${build_name}" "${template}"
-	)
+		KVM_CPU_MODULE=
+		if [[ -e /sys/module/kvm_intel ]]; then
+			KVM_CPU_MODULE=kvm_intel
+		elif [[ -e /sys/module/kvm_amd ]]; then
+			KVM_CPU_MODULE=kvm_amd
+		fi
+
+		if [[ -n ${KVM_CPU_MODULE} ]]; then
+			_wait_for_kvm_users || exit 1
+
+			if ! ${SUDO_CMD:-sudo} modprobe -r "${KVM_CPU_MODULE}"; then
+				echo "ERROR: Unable to unload ${KVM_CPU_MODULE}."
+				${SUDO_CMD:-sudo} fuser -v /dev/kvm || true
+				exit 1
+			fi
+		fi
+
+		if ! ${SUDO_CMD:-sudo} modprobe -r kvm; then
+			echo "ERROR: Unable to unload kvm."
+			${SUDO_CMD:-sudo} modprobe "${KVM_CPU_MODULE}" || true
+			exit 1
+		fi
+
+		(
+			cd "${SCRIPT_DIR}"
+
+			set +e
+			VERSION="${box_version}" packer build -only="${build_name}" "${template}"
+			packer_rc=$?
+
+			${SUDO_CMD:-sudo} modprobe kvm
+			[[ -n ${KVM_CPU_MODULE} ]] &&
+				${SUDO_CMD:-sudo} modprobe "${KVM_CPU_MODULE}"
+
+			exit "${packer_rc}"
+		)
+	else
+		(
+			cd "${SCRIPT_DIR}"
+			VERSION="${box_version}" packer build -only="${build_name}" "${template}"
+		)
+	fi
 
 	mkdir -p "${publish_dir}"
 	mv "${built_box_path}" "${publish_box_path}"
