@@ -24,7 +24,7 @@ vagrant plugin install vagrant_utm
 Add the box from the published metadata file:
 
 ```bash
-vagrant box add https://<host>/electrocucaracha-boxes/ubuntu-noble/metadata.json
+vagrant box add https://<host>/ubuntu-noble/metadata.json
 ```
 
 The UTM boxes use the `utm` provider and publish `arm64` artifacts.

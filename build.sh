@@ -16,7 +16,6 @@ BUILD_NAMESPACE=generic
 BOX_NAMESPACE=${BOX_NAMESPACE:-electrocucaracha-boxes}
 BOX_BASE_URL=${BOX_BASE_URL:-}
 DEPLOY_WWW=${DEPLOY_WWW:-false}
-WWW_ROOT=${WWW_ROOT:-/var/www}
 KVM_DEVICE=${KVM_DEVICE:-/dev/kvm}
 CLEANUP_ALL_VMS=${CLEANUP_ALL_VMS:-false}
 SUDO_CMD=${SUDO_CMD:-}
@@ -515,7 +514,7 @@ function _box_url() {
 	distro_slug=$(_get_distro_slug "${distro}")
 
 	if [[ -n ${BOX_BASE_URL} ]]; then
-		printf '%s/%s/%s/%s' "${BOX_BASE_URL%/}" "${BOX_NAMESPACE}" "${distro_slug}" "$(basename "${box_path}")"
+		printf '%s/%s/%s' "${BOX_BASE_URL%/}" "${distro_slug}" "$(basename "${box_path}")"
 		return
 	fi
 
@@ -584,7 +583,7 @@ function _build_box() {
 		_cleanup_utm_vm "${build_name}"
 	fi
 	if [[ ${provider} == "virtualbox" ]] && [[ -e /sys/module/kvm ]]; then
-		echo "Disabling KVM for VirtualBox build."
+		echo "Disabling KVM for VirtualBox build." >&2
 
 		KVM_CPU_MODULE=
 		if [[ -e /sys/module/kvm_intel ]]; then
@@ -716,7 +715,7 @@ function _write_metadata() {
 
 	if [[ ${#provider_entries[@]} -eq 0 ]]; then
 		echo "ERROR: No built boxes found for ${distro}"
-		exit 1
+		return 1
 	fi
 
 	local providers_json
@@ -744,24 +743,9 @@ function _deploy_www() {
 		return
 	fi
 
-	local deploy_dir="${WWW_ROOT%/}/${BOX_NAMESPACE}"
-
-	if [[ -n ${SUDO_CMD} ]]; then
-		# shellcheck disable=SC2086 # SUDO_CMD may include flags such as "sudo -n".
-		${SUDO_CMD} mkdir -p "${deploy_dir}"
-		# shellcheck disable=SC2086 # SUDO_CMD may include flags such as "sudo -n".
-		${SUDO_CMD} rm -rf "${deploy_dir:?}/"*
-		# shellcheck disable=SC2086 # SUDO_CMD may include flags such as "sudo -n".
-		${SUDO_CMD} cp -R "${OUTPUT_ROOT}/${BOX_NAMESPACE}/." "${deploy_dir}/"
-		return
-	fi
-
-	if ! mkdir -p "${deploy_dir}"; then
-		echo "ERROR: Unable to create '${deploy_dir}'. Re-run with SUDO_CMD=sudo DEPLOY_WWW=true ./build.sh or choose a writable WWW_ROOT."
-		exit 1
-	fi
-	rm -rf "${deploy_dir:?}/"*
-	cp -R "${OUTPUT_ROOT}/${BOX_NAMESPACE}/." "${deploy_dir}/"
+	local deploy_dir="Cloudflare R2:electrocucaracha-vagrant-boxes"
+	rclone copy "${OUTPUT_ROOT}/${BOX_NAMESPACE}" "${deploy_dir}" &&
+		rm -rf "${OUTPUT_ROOT:?}/${BOX_NAMESPACE:?}"
 }
 
 function main() {

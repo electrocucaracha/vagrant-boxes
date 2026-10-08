@@ -40,7 +40,7 @@ The `metadata.json` file includes the following fields:
       "providers": [
         {
           "name": "libvirt",
-          "url": "https://<host>/electrocucaracha-boxes/ubuntu-noble/ubuntu-noble-libvirt-x64-24.04.3.box"
+          "url": "https://<host>/ubuntu-noble/ubuntu-noble-libvirt-x64-24.04.3.box"
         }
       ]
     }

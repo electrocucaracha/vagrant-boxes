@@ -25,7 +25,7 @@ Replace these with the box and provider you want to use.
 Add the box using its metadata file:
 
 ```bash
-vagrant box add https://<host>/electrocucaracha-boxes/ubuntu-noble/metadata.json
+vagrant box add https://<host>/ubuntu-noble/metadata.json
 ```
 
 Vagrant reads the metadata file

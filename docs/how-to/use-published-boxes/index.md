@@ -10,7 +10,7 @@ If the publisher generated metadata with `BOX_BASE_URL`,
 you can add the box from the hosted `metadata.json` file:
 
 ```bash
-vagrant box add https://<host>/electrocucaracha-boxes/ubuntu-jammy/metadata.json
+vagrant box add https://<host>/ubuntu-jammy/metadata.json
 ```
 
 ### Initialize and Start the Environment
