@@ -61,10 +61,12 @@ Use a hosted base URL in generated metadata:
 BOX_BASE_URL=https://example.invalid/releases ./build.sh
 ```
 
-Copy the published artifact tree into a web root:
+Copy the published artifact tree to Cloudflare R2,
+then remove the local artifact tree after a successful upload.
+This deployment requires `rclone` configured with a `Cloudflare R2` remote.
 
 ```bash
-SUDO_CMD=sudo DEPLOY_WWW=true ./build.sh
+DEPLOY_WWW=true ./build.sh
 ```
 
 Clean up conflicting VirtualBox and libvirt VMs before validation:
@@ -147,22 +149,21 @@ The UTM-specific cloud-init seed directories are:
 
 <!-- markdownlint-disable MD013 -->
 
-| Name                         | Default value                      | Description                                                                                                                       |
-| ---------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `DEBUG`                      | `false`                            | Enables shell tracing with `set -o xtrace` when set to `true`.                                                                    |
-| `OUTPUT_ROOT`                | `${SCRIPT_DIR}/dist`               | Root directory where published box artifacts and `metadata.json` files are written.                                               |
-| `WORK_DIR`                   | `${SCRIPT_DIR}/output`             | Working directory used for intermediate build artifacts before they are moved to the publish directory.                           |
-| `VERSION`                    | distro-specific Ubuntu version     | Optional global override for the box version embedded in generated filenames and metadata.                                        |
-| `BOX_NAMESPACE`              | `electrocucaracha-boxes`           | Published namespace used in output paths and metadata names.                                                                      |
-| `BOX_BASE_URL`               | empty                              | Base URL used in generated metadata box URLs. When unset, metadata uses local `file://` URLs.                                     |
-| `CLEANUP_ALL_VMS`            | `false`                            | When set to `true`, cleans up conflicting host VMs before validation.                                                             |
-| `DEPLOY_WWW`                 | `false`                            | When set to `true`, copies the published `${BOX_NAMESPACE}` tree into `WWW_ROOT` after the build finishes.                        |
-| `WWW_ROOT`                   | `/var/www`                         | Destination root used when `DEPLOY_WWW=true`. The build publishes into `${WWW_ROOT}/${BOX_NAMESPACE}`.                            |
-| `SUDO_CMD`                   | empty                              | Optional privilege command used only for the deploy step, for example `sudo` or `sudo -n`, when `WWW_ROOT` is not writable.       |
-| `PACKER_GETTER_READ_TIMEOUT` | `90m`                              | Read timeout used by Packer's downloader for large remote assets such as Ubuntu ISOs. Increase it on slower networks.             |
-| `UTM_PACKER_PLUGIN_SOURCE`   | `github.com/electrocucaracha/utm`  | Packer plugin source used for UTM builds. Override to test another compatible fork or release source.                             |
-| `UTM_PACKER_PLUGIN_VERSION`  | `v4.0.3`                           | Version of the forked UTM Packer plugin installed for UTM builds.                                                                 |
-| `DISTROS`                    | `ubuntu2204 ubuntu2404 ubuntu2604` | Comma- or space-separated list of distro identifiers to build. Supported values are `ubuntu2204`, `ubuntu2404`, and `ubuntu2604`. |
-| `PROVIDERS`                  | `libvirt virtualbox`               | Comma- or space-separated list of providers to build. Supported values are `libvirt`, `virtualbox`, and `utm`.                    |
+| Name                         | Default value                      | Description                                                                                                                              |
+| ---------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEBUG`                      | `false`                            | Enables shell tracing with `set -o xtrace` when set to `true`.                                                                           |
+| `OUTPUT_ROOT`                | `${SCRIPT_DIR}/dist`               | Root directory where published box artifacts and `metadata.json` files are written.                                                      |
+| `WORK_DIR`                   | `${SCRIPT_DIR}/output`             | Working directory used for intermediate build artifacts before they are moved to the publish directory.                                  |
+| `VERSION`                    | distro-specific Ubuntu version     | Optional global override for the box version embedded in generated filenames and metadata.                                               |
+| `BOX_NAMESPACE`              | `electrocucaracha-boxes`           | Published namespace used in output paths and metadata names.                                                                             |
+| `BOX_BASE_URL`               | empty                              | Base URL used in generated metadata box URLs. When unset, metadata uses local `file://` URLs.                                            |
+| `CLEANUP_ALL_VMS`            | `false`                            | When set to `true`, cleans up conflicting host VMs before validation.                                                                    |
+| `DEPLOY_WWW`                 | `false`                            | When set to `true`, uploads `${BOX_NAMESPACE}` to `Cloudflare R2:electrocucaracha-vagrant-boxes` and deletes local copies after success. |
+| `SUDO_CMD`                   | empty                              | Optional privilege command for host operations that require elevated permissions.                                                        |
+| `PACKER_GETTER_READ_TIMEOUT` | `90m`                              | Read timeout used by Packer's downloader for large remote assets such as Ubuntu ISOs. Increase it on slower networks.                    |
+| `UTM_PACKER_PLUGIN_SOURCE`   | `github.com/electrocucaracha/utm`  | Packer plugin source used for UTM builds. Override to test another compatible fork or release source.                                    |
+| `UTM_PACKER_PLUGIN_VERSION`  | `v4.0.3`                           | Version of the forked UTM Packer plugin installed for UTM builds.                                                                        |
+| `DISTROS`                    | `ubuntu2204 ubuntu2404 ubuntu2604` | Comma- or space-separated list of distro identifiers to build. Supported values are `ubuntu2204`, `ubuntu2404`, and `ubuntu2604`.        |
+| `PROVIDERS`                  | `libvirt virtualbox`               | Comma- or space-separated list of providers to build. Supported values are `libvirt`, `virtualbox`, and `utm`.                           |
 
 <!-- markdownlint-enable MD013 -->

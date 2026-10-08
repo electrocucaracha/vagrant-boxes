@@ -1,0 +1,38 @@
+{
+  "version": "2.1",
+  "catalog_version": "v1",
+  "created_at": "2026-10-08T20:44:00Z",
+  "analysis": {
+    "languages": ["shell"],
+    "primary_language": "shell",
+    "app_frameworks": ["unknown"],
+    "test_frameworks": [
+      {
+        "name": "shellspec",
+        "type": "unit",
+        "config_path": ".shellspec"
+      }
+    ],
+    "build_files": ["Makefile", "build.sh", "package.json"],
+    "source_dirs": ["scripts/", "ci/"],
+    "test_dirs": ["spec/"]
+  },
+  "routing": {
+    "matched_catalog_entry": null,
+    "skill_available_in_registry": false,
+    "skill_installed_locally": false,
+    "local_skill_path": null,
+    "skill_verified_at": null,
+    "framework_selected": "shellspec",
+    "decision": "guided-handover"
+  },
+  "native_handover": {
+    "active": true,
+    "reason": "No specialized ShellSpec test skill is available; native handling is appropriate.",
+    "handover_at": "2026-10-08T20:44:00Z",
+    "expires_at": "2026-10-22T20:44:00Z"
+  },
+  "last_intent": "Increase project code coverage toward 75%",
+  "last_run_at": "2026-10-08T20:44:00Z",
+  "expires_at": "2026-10-22T20:44:00Z"
+}

@@ -1,6 +1,7 @@
 # Generated build artifacts
 dist/
 output/
+coverage/
 
 # Local Vagrant/Packer state
 .vagrant/
@@ -15,3 +16,4 @@ output/
 
 node_modules
 package*.json
+test/lib/
