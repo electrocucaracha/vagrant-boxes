@@ -9,6 +9,114 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.2] - 2026-10-08
+
+### Fixed
+
+- Resolved deployment issues by updating the rclone deploy directory to use the correct bucket name in Cloudflare R2, preventing errors due to outdated bucket references. [1ee63259](https://github.com/electrocucaracha/vagrant-boxes/commit/1ee632597ab080c6b4a4c6760cd55849c3f804f1)
+
+## [7.0.1] - 2026-10-08
+
+### Fixed
+
+- Improved idempotency by preventing unnecessary or problematic user creation steps when building images with autoinstall, thereby resolving errors or unexpected behavior when the vagrant user already exists. [fe733bff](https://github.com/electrocucaracha/vagrant-boxes/commit/fe733bffa3f456a70f279f9071cb14d8263f7007)
+
+## [7.0.0] - 2026-10-08
+
+### Removed
+
+- Simplified the test target by removing KVM device validation tests from build_spec.sh, as the affected scenarios are now handled elsewhere, with existing coverage for KVM probe failures remaining intact. [eeebbc2c](https://github.com/electrocucaracha/vagrant-boxes/commit/eeebbc2c852aded7be6037084612bbffe1502953)
+
+## [6.4.4] - 2026-10-08
+
+### Changed
+
+- Enabled line coverage reports for shell scripts through the integration of ShellSpec with the Makefile, which now excludes instrumented and vendor test code from linting and formatting steps. [b1ba468b](https://github.com/electrocucaracha/vagrant-boxes/commit/b1ba468ba3c7a6538f8da266f8c6d1f756d97b66)
+
+## [6.4.3] - 2026-10-08
+
+### Changed
+
+- Simplified box deployment by migrating to Cloudflare R2, eliminating the need for sudo handling and updating metadata examples to reflect new URL paths. [081aace9](https://github.com/electrocucaracha/vagrant-boxes/commit/081aace986ca2679fb1783f86d455ebf284c2f81)
+
+## [6.4.2] - 2026-10-08
+
+### Changed
+
+- Simplified script execution and improved testability by standardizing scripts to use environment variables and main guards. [2bde1bb8](https://github.com/electrocucaracha/vagrant-boxes/commit/2bde1bb860f6a37919989148c23cd97898b2fc01)
+
+## [6.4.1] - 2026-10-07
+
+### Fixed
+
+- VirtualBox builds now reliably switch between virtualization providers in CI or local development after resolving an issue that caused build failures when KVM modules were loaded. [a79ed55d](https://github.com/electrocucaracha/vagrant-boxes/commit/a79ed55d8e1fe625a7843853c564d93860446097)
+
+## [6.4.0] - 2026-10-06
+
+### Added
+
+- Simplified SSH key regeneration and enabled serial console output for easier troubleshooting in virtualized environments by including console=tty0 console=ttyS0,115200n8 in GRUB kernel parameters and switching to direct ssh-keygen -A usage in the systemd unit. [287304e7](https://github.com/electrocucaracha/vagrant-boxes/commit/287304e74152f437dce873ce571f35231e358986)
+
+## [6.3.4] - 2026-10-06
+
+### Changed
+
+- Updated the ai-prepare-commit-msg pre-commit hook to leverage the latest improvements and fixes from upstream, benefiting users with enhanced functionality without introducing any breaking changes or requiring migration steps. [39739b5b](https://github.com/electrocucaracha/vagrant-boxes/commit/39739b5bc153ab83865e13c297294a2456808ce5)
+
+## [6.3.3] - 2026-09-27
+
+### Changed
+
+- Upgraded the failed-build-issue-action to v1.3.0 in CI and linter workflows, enabling workflows to benefit from bugfixes and new features. [cfe32b79](https://github.com/electrocucaracha/vagrant-boxes/commit/cfe32b79bac9de9885d5076bf7e58e510848435d)
+
+## [6.3.2] - 2026-09-27
+
+### Changed
+
+- Streamlined the Makefile commands for linting and formatting tasks by replacing npx --no-install with npx --yes, adding cURL -fsSL for safer script downloads, and removing explicit npm install checks for Prettier. [7fb901e1](https://github.com/electrocucaracha/vagrant-boxes/commit/7fb901e194da38038aa3cd64c0ac622b6dccb187)
+
+## [6.3.1] - 2026-09-23
+
+### Changed
+
+- Stabilized netplan configuration files for Ubuntu 22.04, 24.04, and 26.04 to ensure consistent YAML formatting by correcting the indentation for the addresses field under nameservers. [d395a9d5](https://github.com/electrocucaracha/vagrant-boxes/commit/d395a9d58c54562dd6791e45140c1ec98f5fbed9)
+
+## [6.3.0] - 2026-09-22
+
+### Added
+
+- Enabled detailed Packer logs for troubleshooting build issues by writing logs to /tmp/packer.log when the DEBUG environment variable is true. [4a1c3578](https://github.com/electrocucaracha/vagrant-boxes/commit/4a1c3578a5855b8e1204c95890828cb3fd93bb66)
+
+## [6.2.0] - 2026-09-22
+
+### Added
+
+- Enabled serial console access during unattended installations by adding console=tty0 and console=ttyS0 boot parameters and configuring QEMU to log serial output to per-image files for Ubuntu 22.04, 24.04, and 26.04. [02dc5cb2](https://github.com/electrocucaracha/vagrant-boxes/commit/02dc5cb2441a07363f4d1f5a5c9c1f43aa71b22f)
+
+## [6.1.3] - 2026-09-22
+
+### Changed
+
+- Upgraded the ai-prepare-commit-msg hook to v18.1.0 to leverage the latest features and fixes for improved commit message preparation and maintain compatibility with upstream enhancements. [59519b8f](https://github.com/electrocucaracha/vagrant-boxes/commit/59519b8f46258a63b4589f963d38a48ceb97a54e)
+
+## [6.1.2] - 2026-09-22
+
+### Fixed
+
+- Optimized DNS resolution consistency across deployments by updating default DNS servers to Cloudflare and Google's widely recognized and high-performance addresses. [4d27d3a6](https://github.com/electrocucaracha/vagrant-boxes/commit/4d27d3a68b4fb6fb193dd6936ae0747736d7271d)
+
+## [6.1.1] - 2026-08-29
+
+### Changed
+
+- The changelog entry for the zizmor and AVA incompatibility fix now consistently formats the AVA version as inline code, improving readability. [03ff1d3a](https://github.com/electrocucaracha/vagrant-boxes/commit/03ff1d3a32c889014ea4b4d3115b630066e1ef0e)
+
+## [6.1.0] - 2026-08-29
+
+### Added
+
+- Updated the changelog to include detailed entries for releases 4.6.1 to 6.0.3, providing clearer context for each release and supporting better upgrade decisions and contributor awareness. [ba9a67f2](https://github.com/electrocucaracha/vagrant-boxes/commit/ba9a67f2284d1e274f2e05cc32eee67a976fcf0d)
+
 ## [6.0.3] - 2026-08-29
 
 ### Changed
