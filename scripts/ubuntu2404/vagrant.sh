@@ -6,8 +6,8 @@ VAGRANT_HOME_DIR=${VAGRANT_HOME_DIR:-/home/vagrant}
 VAGRANT_BUILD_TIME_FILE=${VAGRANT_BUILD_TIME_FILE:-/etc/vagrant_box_build_time}
 
 vagrant2404_main() {
-	# Create the vagrant user account.
-	"${VAGRANT_USERADD_CMD}" vagrant
+	# Create the vagrant user account (autoinstall may have created it already).
+	id -u vagrant >/dev/null 2>&1 || "${VAGRANT_USERADD_CMD}" vagrant
 
 	printf "vagrant\nvagrant\n" | passwd vagrant
 	cat <<-EOF >"${VAGRANT_SUDOERS_FILE}"

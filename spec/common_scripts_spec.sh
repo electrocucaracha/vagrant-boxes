@@ -87,6 +87,7 @@ Describe 'common scripts'
     VAGRANT_HOME_DIR="$variant_root/home/vagrant"
     VAGRANT_BUILD_TIME_FILE="$variant_root/vagrant_box_build_time"
     mkdir -p "$(dirname "$VAGRANT_SUDOERS_FILE")" "$VAGRANT_HOME_DIR"
+    id() { return 1; }
     useradd() { printf 'useradd:%s\n' "$*"; }
     passwd() {
       local password_input
