@@ -743,7 +743,7 @@ function _deploy_www() {
 		return
 	fi
 
-	local deploy_dir="Cloudflare R2:electrocucaracha-vagrant-boxes"
+	local deploy_dir="Cloudflare R2:vagrant-boxes"
 	rclone copy "${OUTPUT_ROOT}/${BOX_NAMESPACE}" "${deploy_dir}" &&
 		rm -rf "${OUTPUT_ROOT:?}/${BOX_NAMESPACE:?}"
 }
