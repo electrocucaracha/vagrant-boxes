@@ -409,7 +409,7 @@ Describe 'build.sh'
   Describe '_deploy_www'
     rclone() {
       test "$1" = copy || return 1
-      test "$3" = 'Cloudflare R2:electrocucaracha-vagrant-boxes' || return 1
+      test "$3" = 'Cloudflare R2:vagrant-boxes' || return 1
       [[ ${RCLONE_FAIL:-false} != true ]] || return 1
       command cp -R "$2/." "$TEST_ROOT/deployed/"
     }
