@@ -1,7 +1,5 @@
 root = true
 
-root = true
-
 [*.sh]
 indent_style = space
 indent_size = 4
