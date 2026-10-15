@@ -156,6 +156,7 @@ Describe 'common scripts'
     NETWORK_HOSTS_FILE="$variant_root/hosts"
     NETWORK_NETPLAN_FILE="$variant_root/netplan/01-netcfg.yaml"
     NETWORK_RESOLVED_CONF="$variant_root/resolved.conf"
+    NETWORK_RESOLV_CONF="$variant_root/resolv.conf"
     NETWORK_IFPLUGD_FILE="$variant_root/ifplugd"
     NETWORK_SHUTDOWN_CMD=shutdown
     mkdir -p "$(dirname "$NETWORK_NETPLAN_FILE")"
@@ -175,7 +176,7 @@ Describe 'common scripts'
     grep -q 'net.ipv6.conf.all.disable_ipv6 = 1' "$NETWORK_SYSCTL_CONF" || return 1
     grep -q 'renderer: networkd' "$NETWORK_NETPLAN_FILE" || return 1
     grep -q 'DNS=1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4' "$NETWORK_RESOLVED_CONF" || return 1
-    grep -q 'DNSSEC=yes' "$NETWORK_RESOLVED_CONF" || return 1
+    grep -q 'DNSSEC=allow-downgrade' "$NETWORK_RESOLVED_CONF" || return 1
     if [[ ${release} != 2604 ]]; then
       grep -q 'INTERFACES="eth0"' "$NETWORK_IFPLUGD_FILE" || return 1
     fi

@@ -4,68 +4,68 @@
 [ "$TERM" == "dumb" ] && export TERM="vt100"
 
 qemu2204_retry() {
-	local COUNT=1
-	local DELAY=0
-	local RESULT=0
-	while [[ ${COUNT} -le 10 ]]; do
-		[[ ${RESULT} -ne 0 ]] && {
-			[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
-			echo -e "\n${*} failed... retrying ${COUNT} of 10.\n" >&2
-			[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
-		}
-		"${@}" && { RESULT=0 && break; } || RESULT="${?}"
-		COUNT="$((COUNT + 1))"
+    local COUNT=1
+    local DELAY=0
+    local RESULT=0
+    while [[ ${COUNT} -le 10 ]]; do
+        [[ ${RESULT} -ne 0 ]] && {
+            [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
+            echo -e "\n${*} failed... retrying ${COUNT} of 10.\n" >&2
+            [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
+        }
+        "${@}" && { RESULT=0 && break; } || RESULT="${?}"
+        COUNT="$((COUNT + 1))"
 
-		# Increase the delay with each iteration.
-		DELAY="$((DELAY + 10))"
-		sleep $DELAY
-	done
+        # Increase the delay with each iteration.
+        DELAY="$((DELAY + 10))"
+        sleep $DELAY
+    done
 
-	[[ ${COUNT} -gt 10 ]] && {
-		[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
-		echo -e "\nThe command failed 10 times.\n" >&2
-		[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
-	}
+    [[ ${COUNT} -gt 10 ]] && {
+        [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
+        echo -e "\nThe command failed 10 times.\n" >&2
+        [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
+    }
 
-	return "${RESULT}"
+    return "${RESULT}"
 }
 
 qemu2204_error() {
-	printf "\n\nqemu addons failed to install...\n\n"
+    printf "\n\nqemu addons failed to install...\n\n"
 }
 
 qemu2204_main() {
-	# Bail if we are not running atop a QEMU-based hypervisor build.
-	if [[ ! ${PACKER_BUILD_NAME:-} =~ ^generic-ubuntu(2204|2404)-utm-arm64$ ]] &&
-		[[ $(dmidecode -s system-product-name) != "KVM" && $(dmidecode -s system-manufacturer) != "QEMU" ]]; then
-		return 0
-	fi
+    # Bail if we are not running atop a QEMU-based hypervisor build.
+    if [[ ! ${PACKER_BUILD_NAME:-} =~ ^generic-ubuntu(2204|2404)-utm-arm64$ ]] &&
+        [[ $(dmidecode -s system-product-name) != "KVM" && $(dmidecode -s system-manufacturer) != "QEMU" ]]; then
+        return 0
+    fi
 
-	# Install the QEMU using Yum.
-	printf "Installing the QEMU Tools.\n"
+    # Install the QEMU using Yum.
+    printf "Installing the QEMU Tools.\n"
 
-	# To allow for automated installs, we disable interactive configuration steps.
-	export DEBIAN_FRONTEND=noninteractive
-	export DEBCONF_NONINTERACTIVE_SEEN=true
+    # To allow for automated installs, we disable interactive configuration steps.
+    export DEBIAN_FRONTEND=noninteractive
+    export DEBCONF_NONINTERACTIVE_SEEN=true
 
-	qemu2204_retry apt-get --assume-yes install qemu-guest-agent || {
-		qemu2204_error
-		return 1
-	}
+    qemu2204_retry apt-get --assume-yes install qemu-guest-agent || {
+        qemu2204_error
+        return 1
+    }
 
-	# For some reason the VMWare tools are installed on QEMU guest images.
-	systemctl disable open-vm-tools.service
+    # For some reason the VMWare tools are installed on QEMU guest images.
+    systemctl disable open-vm-tools.service
 
-	# Boosts the available entropy which allows the guest to start faster.
-	qemu2204_retry apt-get --assume-yes install haveged || {
-		qemu2204_error
-		return 1
-	}
+    # Boosts the available entropy which allows the guest to start faster.
+    qemu2204_retry apt-get --assume-yes install haveged || {
+        qemu2204_error
+        return 1
+    }
 
-	# Autostart the haveged daemon.
-	systemctl enable haveged.service
+    # Autostart the haveged daemon.
+    systemctl enable haveged.service
 }
 
 if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
-	qemu2204_main "$@"
+    qemu2204_main "$@"
 fi

@@ -4,7 +4,7 @@ PROFILE_ROOT_HOME=${PROFILE_ROOT_HOME:-/root}
 PROFILE_VAGRANT_HOME=${PROFILE_VAGRANT_HOME:-/home/vagrant}
 
 profile2604_main() {
-	cd "${PROFILE_ROOT_HOME}" && patch -p1 <<-EOF
+    cd "${PROFILE_ROOT_HOME}" && patch -p1 <<-EOF
 		diff --git a/.bashrc b/.bashrc
 		index f6939ee..545eaea 100644
 		--- a/.bashrc
@@ -48,12 +48,12 @@ profile2604_main() {
 		+fi
 	EOF
 
-	cat <<-EOF >"${PROFILE_ROOT_HOME}/.vimrc"
+    cat <<-EOF >"${PROFILE_ROOT_HOME}/.vimrc"
 		set mouse-=a
 	EOF
 
-	if [ -d "${PROFILE_VAGRANT_HOME}/" ] && [ -f "${PROFILE_VAGRANT_HOME}/.bashrc" ]; then
-		cd "${PROFILE_VAGRANT_HOME}/" && patch -p1 <<-EOF
+    if [ -d "${PROFILE_VAGRANT_HOME}/" ] && [ -f "${PROFILE_VAGRANT_HOME}/.bashrc" ]; then
+        cd "${PROFILE_VAGRANT_HOME}/" && patch -p1 <<-EOF
 			diff --git a/.bashrc b/.bashrc
 			index b488fcc..559370c 100644
 			--- a/.bashrc
@@ -77,17 +77,17 @@ profile2604_main() {
 			 # check the window size after each command and, if necessary,
 			 # update the values of LINES and COLUMNS.
 		EOF
-		chown vagrant:vagrant "${PROFILE_VAGRANT_HOME}/.bashrc"
-	fi
+        chown vagrant:vagrant "${PROFILE_VAGRANT_HOME}/.bashrc"
+    fi
 
-	if [ -d "${PROFILE_VAGRANT_HOME}/" ]; then
-		cat <<-EOF >"${PROFILE_VAGRANT_HOME}/.vimrc"
+    if [ -d "${PROFILE_VAGRANT_HOME}/" ]; then
+        cat <<-EOF >"${PROFILE_VAGRANT_HOME}/.vimrc"
 			set mouse-=a
 		EOF
-		chown vagrant:vagrant "${PROFILE_VAGRANT_HOME}/.vimrc"
-	fi
+        chown vagrant:vagrant "${PROFILE_VAGRANT_HOME}/.vimrc"
+    fi
 }
 
 if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
-	profile2604_main "$@"
+    profile2604_main "$@"
 fi

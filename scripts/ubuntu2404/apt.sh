@@ -4,41 +4,41 @@
 [ "$TERM" == "dumb" ] && export TERM="vt100"
 
 apt2404_retry() {
-	local COUNT=1
-	local DELAY=0
-	local RESULT=0
-	while [[ ${COUNT} -le 10 ]]; do
-		[[ ${RESULT} -ne 0 ]] && {
-			[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
-			echo -e "\n${*} failed... retrying ${COUNT} of 10.\n" >&2
-			[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
-		}
-		"${@}" && { RESULT=0 && break; } || RESULT="${?}"
-		COUNT="$((COUNT + 1))"
+    local COUNT=1
+    local DELAY=0
+    local RESULT=0
+    while [[ ${COUNT} -le 10 ]]; do
+        [[ ${RESULT} -ne 0 ]] && {
+            [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
+            echo -e "\n${*} failed... retrying ${COUNT} of 10.\n" >&2
+            [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
+        }
+        "${@}" && { RESULT=0 && break; } || RESULT="${?}"
+        COUNT="$((COUNT + 1))"
 
-		# Increase the delay with each iteration.
-		DELAY="$((DELAY + 10))"
-		sleep $DELAY
-	done
+        # Increase the delay with each iteration.
+        DELAY="$((DELAY + 10))"
+        sleep $DELAY
+    done
 
-	[[ ${COUNT} -gt 10 ]] && {
-		[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
-		echo -e "\nThe command failed 10 times.\n" >&2
-		[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
-	}
+    [[ ${COUNT} -gt 10 ]] && {
+        [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
+        echo -e "\nThe command failed 10 times.\n" >&2
+        [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
+    }
 
-	return "${RESULT}"
+    return "${RESULT}"
 }
 
 apt2404_error() {
-	if [ $? -ne 0 ]; then
-		printf "\n\nAPT failed... again.\n\n"
-		exit 1
-	fi
+    if [ $? -ne 0 ]; then
+        printf "\n\nAPT failed... again.\n\n"
+        exit 1
+    fi
 }
 
 if [[ ${BASH_SOURCE[0]} != "$0" ]]; then
-	return 0
+    return 0
 fi
 
 retry() { apt2404_retry "$@"; }
@@ -58,7 +58,7 @@ printf "nameserver 1.1.1.1\nnameserver 1.0.0.1\nnameserver 8.8.8.8\nnameserver 8
 sed -i -e 's/^Prompt=.*$/Prompt=never/' /etc/update-manager/release-upgrades
 
 if [ -f /usr/lib/ubuntu-release-upgrader/release-upgrade-motd ]; then
-	cat <<-EOF >/usr/lib/ubuntu-release-upgrader/release-upgrade-motd
+    cat <<-EOF >/usr/lib/ubuntu-release-upgrader/release-upgrade-motd
 		#!/bin/sh
 		if [ -d /var/lib/ubuntu-release-upgrader/ ]; then
 		  date +%s > /var/lib/ubuntu-release-upgrader/release-upgrade-available
@@ -73,16 +73,16 @@ fi
 # If the APT configuration directory exists, we add our own config options.
 if [ -d /etc/apt/apt.conf.d/ ]; then
 
-	# Disable APT periodic so it doesn't cause problems.
-	if [ -f /etc/apt/apt.conf.d/10periodic ]; then
-		sed -i "/^APT::Periodic::Enable/d" /etc/apt/apt.conf.d/10periodic
-		sed -i "/^APT::Periodic::AutocleanInterval/d" /etc/apt/apt.conf.d/10periodic
-		sed -i "/^APT::Periodic::Unattended-Upgrade/d" /etc/apt/apt.conf.d/10periodic
-		sed -i "/^APT::Periodic::Update-Package-Lists/d" /etc/apt/apt.conf.d/10periodic
-		sed -i "/^APT::Periodic::Download-Upgradeable-Packages/d" /etc/apt/apt.conf.d/10periodic
-	fi
+    # Disable APT periodic so it doesn't cause problems.
+    if [ -f /etc/apt/apt.conf.d/10periodic ]; then
+        sed -i "/^APT::Periodic::Enable/d" /etc/apt/apt.conf.d/10periodic
+        sed -i "/^APT::Periodic::AutocleanInterval/d" /etc/apt/apt.conf.d/10periodic
+        sed -i "/^APT::Periodic::Unattended-Upgrade/d" /etc/apt/apt.conf.d/10periodic
+        sed -i "/^APT::Periodic::Update-Package-Lists/d" /etc/apt/apt.conf.d/10periodic
+        sed -i "/^APT::Periodic::Download-Upgradeable-Packages/d" /etc/apt/apt.conf.d/10periodic
+    fi
 
-	cat <<-EOF >>/etc/apt/apt.conf.d/10periodic
+    cat <<-EOF >>/etc/apt/apt.conf.d/10periodic
 
 		APT::Periodic::Enable "0";
 		APT::Periodic::AutocleanInterval "0";
@@ -92,8 +92,8 @@ if [ -d /etc/apt/apt.conf.d/ ]; then
 
 	EOF
 
-	# We disable APT retries, to avoid inconsistent error handling, as it only retries some errors. Instead we let the retry function detect, and retry a given command regardless of the error.
-	cat <<-EOF >>/etc/apt/apt.conf.d/20retries
+    # We disable APT retries, to avoid inconsistent error handling, as it only retries some errors. Instead we let the retry function detect, and retry a given command regardless of the error.
+    cat <<-EOF >>/etc/apt/apt.conf.d/20retries
 
 		APT::Acquire::Retries "0";
 
@@ -186,7 +186,7 @@ error
 
 # Ensure the linux-tools and linux-cloud-tools get updated with the kernel.
 if apt-cache show linux-cloud-tools-virtual >/dev/null 2>&1; then
-	retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" install linux-cloud-tools-virtual
+    retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" install linux-cloud-tools-virtual
 fi
 
 # Upgrade the installed packages.

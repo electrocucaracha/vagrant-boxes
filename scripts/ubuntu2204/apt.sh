@@ -7,79 +7,79 @@ APT_USR_LIB_ROOT=${APT_USR_LIB_ROOT:-/usr/lib}
 [ "$TERM" == "dumb" ] && export TERM="vt100"
 
 apt2204_retry() {
-	local COUNT=1
-	local DELAY=0
-	local RESULT=0
-	while [[ ${COUNT} -le 10 ]]; do
-		[[ ${RESULT} -ne 0 ]] && {
-			[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
-			echo -e "\n${*} failed... retrying ${COUNT} of 10.\n" >&2
-			[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
-		}
-		"${@}" && { RESULT=0 && break; } || RESULT="${?}"
-		COUNT="$((COUNT + 1))"
+    local COUNT=1
+    local DELAY=0
+    local RESULT=0
+    while [[ ${COUNT} -le 10 ]]; do
+        [[ ${RESULT} -ne 0 ]] && {
+            [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
+            echo -e "\n${*} failed... retrying ${COUNT} of 10.\n" >&2
+            [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
+        }
+        "${@}" && { RESULT=0 && break; } || RESULT="${?}"
+        COUNT="$((COUNT + 1))"
 
-		# Increase the delay with each iteration.
-		DELAY="$((DELAY + 10))"
-		sleep $DELAY
-	done
+        # Increase the delay with each iteration.
+        DELAY="$((DELAY + 10))"
+        sleep $DELAY
+    done
 
-	[[ ${COUNT} -gt 10 ]] && {
-		[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
-		echo -e "\nThe command failed 10 times.\n" >&2
-		[ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
-	}
+    [[ ${COUNT} -gt 10 ]] && {
+        [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput setaf 1
+        echo -e "\nThe command failed 10 times.\n" >&2
+        [ "$(which tput 2>/dev/null)" != "" ] && [ -n "$TERM" ] && tput sgr0
+    }
 
-	return "${RESULT}"
+    return "${RESULT}"
 }
 
 apt2204_error() {
-	if [ $? -ne 0 ]; then
-		printf "\n\nAPT failed... again.\n\n"
-		exit 1
-	fi
+    if [ $? -ne 0 ]; then
+        printf "\n\nAPT failed... again.\n\n"
+        exit 1
+    fi
 }
 
 apt2204_main() {
-	# To allow for automated installs, we disable interactive configuration steps.
-	export DEBIAN_FRONTEND=noninteractive
-	export DEBCONF_NONINTERACTIVE_SEEN=true
+    # To allow for automated installs, we disable interactive configuration steps.
+    export DEBIAN_FRONTEND=noninteractive
+    export DEBCONF_NONINTERACTIVE_SEEN=true
 
-	# Temporarily disable IPv6, update the nameservers so packages download
-	# properly. A more permanent soulution is applied by the network
-	# configuration script.
-	sysctl net.ipv6.conf.all.disable_ipv6=1
-	printf "nameserver 1.1.1.1\nnameserver 1.0.0.1\nnameserver 8.8.8.8\nnameserver 8.8.4.4\n" >"${APT_ETC_ROOT}/resolv.conf"
+    # Temporarily disable IPv6, update the nameservers so packages download
+    # properly. A more permanent soulution is applied by the network
+    # configuration script.
+    sysctl net.ipv6.conf.all.disable_ipv6=1
+    printf "nameserver 1.1.1.1\nnameserver 1.0.0.1\nnameserver 8.8.8.8\nnameserver 8.8.4.4\n" >"${APT_ETC_ROOT}/resolv.conf"
 
-	# Disable upgrades to new releases, and prevent notifications from being added to motd.
-	sed -i -e 's/^Prompt=.*$/Prompt=never/' "${APT_ETC_ROOT}/update-manager/release-upgrades"
+    # Disable upgrades to new releases, and prevent notifications from being added to motd.
+    sed -i -e 's/^Prompt=.*$/Prompt=never/' "${APT_ETC_ROOT}/update-manager/release-upgrades"
 
-	if [ -f "${APT_USR_LIB_ROOT}/ubuntu-release-upgrader/release-upgrade-motd" ]; then
-		cat <<-EOF >"${APT_USR_LIB_ROOT}/ubuntu-release-upgrader/release-upgrade-motd"
+    if [ -f "${APT_USR_LIB_ROOT}/ubuntu-release-upgrader/release-upgrade-motd" ]; then
+        cat <<-EOF >"${APT_USR_LIB_ROOT}/ubuntu-release-upgrader/release-upgrade-motd"
 			#!/bin/sh
 			if [ -d /var/lib/ubuntu-release-upgrader/ ]; then
 			  date +%s > /var/lib/ubuntu-release-upgrader/release-upgrade-available
 			fi
 			exit 0
 		EOF
-	fi
+    fi
 
-	# Remove a confusing, and potentially conflicting sources file left by the install process.
-	[ -f "${APT_ETC_ROOT}/apt/sources.list.curtin.old" ] && rm --force "${APT_ETC_ROOT}/apt/sources.list.curtin.old"
+    # Remove a confusing, and potentially conflicting sources file left by the install process.
+    [ -f "${APT_ETC_ROOT}/apt/sources.list.curtin.old" ] && rm --force "${APT_ETC_ROOT}/apt/sources.list.curtin.old"
 
-	# If the APT configuration directory exists, we add our own config options.
-	if [ -d "${APT_ETC_ROOT}/apt/apt.conf.d/" ]; then
+    # If the APT configuration directory exists, we add our own config options.
+    if [ -d "${APT_ETC_ROOT}/apt/apt.conf.d/" ]; then
 
-		# Disable APT periodic so it doesn't cause problems.
-		if [ -f "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic" ]; then
-			sed -i "/^APT::Periodic::Enable/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
-			sed -i "/^APT::Periodic::AutocleanInterval/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
-			sed -i "/^APT::Periodic::Unattended-Upgrade/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
-			sed -i "/^APT::Periodic::Update-Package-Lists/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
-			sed -i "/^APT::Periodic::Download-Upgradeable-Packages/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
-		fi
+        # Disable APT periodic so it doesn't cause problems.
+        if [ -f "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic" ]; then
+            sed -i "/^APT::Periodic::Enable/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
+            sed -i "/^APT::Periodic::AutocleanInterval/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
+            sed -i "/^APT::Periodic::Unattended-Upgrade/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
+            sed -i "/^APT::Periodic::Update-Package-Lists/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
+            sed -i "/^APT::Periodic::Download-Upgradeable-Packages/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
+        fi
 
-		cat <<-EOF >>"${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
+        cat <<-EOF >>"${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
 
 			APT::Periodic::Enable "0";
 			APT::Periodic::AutocleanInterval "0";
@@ -89,126 +89,126 @@ apt2204_main() {
 
 		EOF
 
-		# We disable APT retries, to avoid inconsistent error handling, as it only retries some errors. Instead we let the retry function detect, and retry a given command regardless of the error.
-		cat <<-EOF >>"${APT_ETC_ROOT}/apt/apt.conf.d/20retries"
+        # We disable APT retries, to avoid inconsistent error handling, as it only retries some errors. Instead we let the retry function detect, and retry a given command regardless of the error.
+        cat <<-EOF >>"${APT_ETC_ROOT}/apt/apt.conf.d/20retries"
 
 			APT::Acquire::Retries "0";
 
 		EOF
 
-	fi
+    fi
 
-	# Stop the active services/timers.
-	systemctl --quiet list-unit-files apt-daily.timer &>/dev/null && systemctl --quiet is-active apt-daily.timer && systemctl stop apt-daily.timer
-	systemctl --quiet list-unit-files apt-daily-upgrade.timer &>/dev/null && systemctl --quiet is-active apt-daily-upgrade.timer && systemctl stop apt-daily-upgrade.timer
-	systemctl --quiet list-unit-files update-notifier-download.timer &>/dev/null && systemctl --quiet is-active update-notifier-download.timer && systemctl stop update-notifier-download.timer
+    # Stop the active services/timers.
+    systemctl --quiet list-unit-files apt-daily.timer &>/dev/null && systemctl --quiet is-active apt-daily.timer && systemctl stop apt-daily.timer
+    systemctl --quiet list-unit-files apt-daily-upgrade.timer &>/dev/null && systemctl --quiet is-active apt-daily-upgrade.timer && systemctl stop apt-daily-upgrade.timer
+    systemctl --quiet list-unit-files update-notifier-download.timer &>/dev/null && systemctl --quiet is-active update-notifier-download.timer && systemctl stop update-notifier-download.timer
 
-	systemctl --quiet list-unit-files apt-news.service &>/dev/null && systemctl --quiet is-active apt-news.service && systemctl stop apt-news.service
-	systemctl --quiet list-unit-files apt-daily.service &>/dev/null && systemctl --quiet is-active apt-daily.service && systemctl stop apt-daily.service
-	systemctl --quiet list-unit-files apt-daily-upgrade.service &>/dev/null && systemctl --quiet is-active apt-daily-upgrade.service && systemctl stop apt-daily-upgrade.service
+    systemctl --quiet list-unit-files apt-news.service &>/dev/null && systemctl --quiet is-active apt-news.service && systemctl stop apt-news.service
+    systemctl --quiet list-unit-files apt-daily.service &>/dev/null && systemctl --quiet is-active apt-daily.service && systemctl stop apt-daily.service
+    systemctl --quiet list-unit-files apt-daily-upgrade.service &>/dev/null && systemctl --quiet is-active apt-daily-upgrade.service && systemctl stop apt-daily-upgrade.service
 
-	systemctl --quiet list-unit-files snapd.socket &>/dev/null && systemctl --quiet is-active snapd.socket && systemctl stop snapd.socket
-	systemctl --quiet list-unit-files snapd.service &>/dev/null && systemctl --quiet is-active snapd.service && systemctl stop snapd.service
+    systemctl --quiet list-unit-files snapd.socket &>/dev/null && systemctl --quiet is-active snapd.socket && systemctl stop snapd.socket
+    systemctl --quiet list-unit-files snapd.service &>/dev/null && systemctl --quiet is-active snapd.service && systemctl stop snapd.service
 
-	systemctl --quiet list-unit-files packagekit.service &>/dev/null && systemctl --quiet is-active packagekit.service && systemctl stop packagekit.service
-	systemctl --quiet list-unit-files packagekit-offline-update.service &>/dev/null && systemctl --quiet is-active packagekit-offline-update.service && systemctl stop packagekit.service
+    systemctl --quiet list-unit-files packagekit.service &>/dev/null && systemctl --quiet is-active packagekit.service && systemctl stop packagekit.service
+    systemctl --quiet list-unit-files packagekit-offline-update.service &>/dev/null && systemctl --quiet is-active packagekit-offline-update.service && systemctl stop packagekit.service
 
-	systemctl --quiet list-unit-files unattended-upgrades.service &>/dev/null && systemctl --quiet is-active unattended-upgrades.service && systemctl stop unattended-upgrades.service
-	systemctl --quiet list-unit-files update-notifier-download.service &>/dev/null && systemctl --quiet is-active update-notifier-download.service && systemctl stop update-notifier-download.service
+    systemctl --quiet list-unit-files unattended-upgrades.service &>/dev/null && systemctl --quiet is-active unattended-upgrades.service && systemctl stop unattended-upgrades.service
+    systemctl --quiet list-unit-files update-notifier-download.service &>/dev/null && systemctl --quiet is-active update-notifier-download.service && systemctl stop update-notifier-download.service
 
-	# Disable them so they don't restart.
-	systemctl --quiet list-unit-files apt-daily.timer &>/dev/null && systemctl --quiet is-enabled apt-daily.timer && systemctl disable apt-daily.timer
-	systemctl --quiet list-unit-files apt-daily-upgrade.timer &>/dev/null && systemctl --quiet is-enabled apt-daily-upgrade.timer && systemctl disable apt-daily-upgrade.timer
-	systemctl --quiet list-unit-files update-notifier-download.timer &>/dev/null && systemctl --quiet is-enabled update-notifier-download.timer && systemctl disable update-notifier-download.timer
+    # Disable them so they don't restart.
+    systemctl --quiet list-unit-files apt-daily.timer &>/dev/null && systemctl --quiet is-enabled apt-daily.timer && systemctl disable apt-daily.timer
+    systemctl --quiet list-unit-files apt-daily-upgrade.timer &>/dev/null && systemctl --quiet is-enabled apt-daily-upgrade.timer && systemctl disable apt-daily-upgrade.timer
+    systemctl --quiet list-unit-files update-notifier-download.timer &>/dev/null && systemctl --quiet is-enabled update-notifier-download.timer && systemctl disable update-notifier-download.timer
 
-	systemctl --quiet list-unit-files apt-news.service &>/dev/null && systemctl --quiet is-enabled apt-news.service && systemctl mask apt-news.service
-	systemctl --quiet list-unit-files apt-daily.service &>/dev/null && systemctl --quiet is-enabled apt-daily.service && systemctl mask apt-daily.service
-	systemctl --quiet list-unit-files apt-daily-upgrade.service &>/dev/null && systemctl --quiet is-enabled apt-daily-upgrade.service && systemctl mask apt-daily-upgrade.service
+    systemctl --quiet list-unit-files apt-news.service &>/dev/null && systemctl --quiet is-enabled apt-news.service && systemctl mask apt-news.service
+    systemctl --quiet list-unit-files apt-daily.service &>/dev/null && systemctl --quiet is-enabled apt-daily.service && systemctl mask apt-daily.service
+    systemctl --quiet list-unit-files apt-daily-upgrade.service &>/dev/null && systemctl --quiet is-enabled apt-daily-upgrade.service && systemctl mask apt-daily-upgrade.service
 
-	# Package install/update triggers rely on the PackageKit.service to make system changes, and these operations fail
-	# if the PackageKit.service is masked. So we only disable it.
-	systemctl --quiet list-unit-files packagekit.service &>/dev/null && systemctl --quiet is-enabled packagekit.service && systemctl disable packagekit.service
-	systemctl --quiet list-unit-files packagekit-offline-update.service &>/dev/null && systemctl --quiet is-enabled packagekit-offline-update.service && systemctl mask packagekit-offline-update.service
+    # Package install/update triggers rely on the PackageKit.service to make system changes, and these operations fail
+    # if the PackageKit.service is masked. So we only disable it.
+    systemctl --quiet list-unit-files packagekit.service &>/dev/null && systemctl --quiet is-enabled packagekit.service && systemctl disable packagekit.service
+    systemctl --quiet list-unit-files packagekit-offline-update.service &>/dev/null && systemctl --quiet is-enabled packagekit-offline-update.service && systemctl mask packagekit-offline-update.service
 
-	systemctl --quiet list-unit-files snapd.socket &>/dev/null && systemctl --quiet is-enabled snapd.socket && systemctl disable snapd.socket
-	systemctl --quiet list-unit-files snapd.service &>/dev/null && systemctl --quiet is-enabled snapd.service && systemctl mask snapd.service
+    systemctl --quiet list-unit-files snapd.socket &>/dev/null && systemctl --quiet is-enabled snapd.socket && systemctl disable snapd.socket
+    systemctl --quiet list-unit-files snapd.service &>/dev/null && systemctl --quiet is-enabled snapd.service && systemctl mask snapd.service
 
-	systemctl --quiet list-unit-files unattended-upgrades.service &>/dev/null && systemctl --quiet is-enabled unattended-upgrades.service && systemctl mask unattended-upgrades.service
-	systemctl --quiet list-unit-files update-notifier-download.service &>/dev/null && systemctl --quiet is-enabled update-notifier-download.service && systemctl mask update-notifier-download.service
+    systemctl --quiet list-unit-files unattended-upgrades.service &>/dev/null && systemctl --quiet is-enabled unattended-upgrades.service && systemctl mask unattended-upgrades.service
+    systemctl --quiet list-unit-files update-notifier-download.service &>/dev/null && systemctl --quiet is-enabled update-notifier-download.service && systemctl mask update-notifier-download.service
 
-	# An unattended upgrade service doesn't fit the use use case for
-	# vagrant boxes, so removal is an option, but since Ubuntu installs
-	# it by default, and we want to keep the environment close to the default,
-	# we'll just leave disabled for now.
-	# apt-get -qq -y purge unattended-upgrades
-	# cat <<-EOF | sudo debconf-set-selections
-	# unattended-upgrades unattended-upgrades/enable_auto_updates boolean false
-	# EOF
+    # An unattended upgrade service doesn't fit the use use case for
+    # vagrant boxes, so removal is an option, but since Ubuntu installs
+    # it by default, and we want to keep the environment close to the default,
+    # we'll just leave disabled for now.
+    # apt-get -qq -y purge unattended-upgrades
+    # cat <<-EOF | sudo debconf-set-selections
+    # unattended-upgrades unattended-upgrades/enable_auto_updates boolean false
+    # EOF
 
-	# Truncate the sources list in order to force a status purge.
-	# truncate --size=0 /etc/apt/sources.list
+    # Truncate the sources list in order to force a status purge.
+    # truncate --size=0 /etc/apt/sources.list
 
-	# Run clean/autoclean/purge/update first, this will work around problems with ghost packages, and/or
-	# conflicting data in the repo index cache. After the cleanup is complete, we can proceed with the
-	# update/upgrade/install commands below.
-	apt-get --assume-yes clean
-	apt2204_error
-	apt-get --assume-yes autoclean
-	apt2204_error
-	apt-get --assume-yes update
-	apt2204_error
+    # Run clean/autoclean/purge/update first, this will work around problems with ghost packages, and/or
+    # conflicting data in the repo index cache. After the cleanup is complete, we can proceed with the
+    # update/upgrade/install commands below.
+    apt-get --assume-yes clean
+    apt2204_error
+    apt-get --assume-yes autoclean
+    apt2204_error
+    apt-get --assume-yes update
+    apt2204_error
 
-	# # Enable this once 22.04 reaches the end of its life.
-	# # Write out a nice and compact sources list.
-	# cat <<-EOF > /etc/apt/sources.list
-	#
-	# deb https://old-releases.ubuntu.com/ubuntu/ jammy main restricted universe multiverse
-	# deb https://old-releases.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse
-	# deb https://old-releases.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse
-	# deb https://old-releases.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
-	#
-	# # deb-src https://old-releases.ubuntu.com/ubuntu/ jammy main restricted universe multiverse
-	# # deb-src https://old-releases.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse
-	# # deb-src https://old-releases.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse
-	# # deb-src https://old-releases.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
-	#
-	# EOF
-	#
-	# # Some of the ubuntu archive servers appear to be missing files/packages..
-	# printf "\n91.189.91.124 old-releases.ubuntu.com\n" >> /etc/hosts
+    # # Enable this once 22.04 reaches the end of its life.
+    # # Write out a nice and compact sources list.
+    # cat <<-EOF > /etc/apt/sources.list
+    #
+    # deb https://old-releases.ubuntu.com/ubuntu/ jammy main restricted universe multiverse
+    # deb https://old-releases.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse
+    # deb https://old-releases.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse
+    # deb https://old-releases.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
+    #
+    # # deb-src https://old-releases.ubuntu.com/ubuntu/ jammy main restricted universe multiverse
+    # # deb-src https://old-releases.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse
+    # # deb-src https://old-releases.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse
+    # # deb-src https://old-releases.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
+    #
+    # EOF
+    #
+    # # Some of the ubuntu archive servers appear to be missing files/packages..
+    # printf "\n91.189.91.124 old-releases.ubuntu.com\n" >> /etc/hosts
 
-	# Update the package database.
-	apt2204_retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" update
-	apt2204_error
+    # Update the package database.
+    apt2204_retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" update
+    apt2204_error
 
-	# Ensure the linux-tools and linux-cloud-tools get updated with the kernel.
-	if apt-cache show linux-cloud-tools-virtual >/dev/null 2>&1; then
-		apt2204_retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" install linux-cloud-tools-virtual
-	fi
+    # Ensure the linux-tools and linux-cloud-tools get updated with the kernel.
+    if apt-cache show linux-cloud-tools-virtual >/dev/null 2>&1; then
+        apt2204_retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" install linux-cloud-tools-virtual
+    fi
 
-	# Upgrade the installed packages.
-	apt2204_retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" upgrade
-	apt2204_error
-	apt2204_retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" dist-upgrade
-	apt2204_error
+    # Upgrade the installed packages.
+    apt2204_retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" upgrade
+    apt2204_error
+    apt2204_retry apt-get --assume-yes -o Dpkg::Options::="--force-confnew" dist-upgrade
+    apt2204_error
 
-	# Needed to retrieve source code, and other misc system tools.
-	apt2204_retry apt-get --assume-yes install vim vim-nox gawk git git-man liberror-perl wget curl rsync gnupg mlocate sudo sysstat lsof pciutils usbutils lsb-release psmisc
-	apt2204_error
+    # Needed to retrieve source code, and other misc system tools.
+    apt2204_retry apt-get --assume-yes install vim vim-nox gawk git git-man liberror-perl wget curl rsync gnupg mlocate sudo sysstat lsof pciutils usbutils lsb-release psmisc
+    apt2204_error
 
-	# Enable the sysstat collection service.
-	sed -i -e 's|.*ENABLED=".*"|ENABLED="true"|g' "${APT_ETC_ROOT}/default/sysstat"
+    # Enable the sysstat collection service.
+    sed -i -e 's|.*ENABLED=".*"|ENABLED="true"|g' "${APT_ETC_ROOT}/default/sysstat"
 
-	# Start the services we just added so the system will track its own performance.
-	systemctl enable sysstat.service && systemctl start sysstat.service
+    # Start the services we just added so the system will track its own performance.
+    systemctl enable sysstat.service && systemctl start sysstat.service
 
-	# Setup vim as the default editor.
-	printf "alias vi=vim\n" >>"${APT_ETC_ROOT}/profile.d/vim.sh"
+    # Setup vim as the default editor.
+    printf "alias vi=vim\n" >>"${APT_ETC_ROOT}/profile.d/vim.sh"
 
-	# Populate the mlocate database during boot.
-	printf "@reboot root command bash -c '/etc/cron.daily/mlocate'\n" >"${APT_ETC_ROOT}/cron.d/mlocate"
+    # Populate the mlocate database during boot.
+    printf "@reboot root command bash -c '/etc/cron.daily/mlocate'\n" >"${APT_ETC_ROOT}/cron.d/mlocate"
 }
 
 if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
-	apt2204_main "$@"
+    apt2204_main "$@"
 fi
