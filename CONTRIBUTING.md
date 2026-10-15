@@ -85,6 +85,16 @@ Run:
 make test
 ```
 
+## Linting
+
+Run `make fmt` before `make lint`.
+Shell scripts use four-space indentation to match CI,
+while `spec/` and `test/lib/` are excluded from shell formatting.
+The Markdown pre-commit hook uses Node.js 22.23.3 and its bundled npm 10
+to avoid npm 11 rejecting pre-commit's global Git-package installation.
+Pre-commit downloads this runtime automatically,
+so the hook does not depend on the host's Node.js or npm version.
+
 ## Build behavior
 
 - Default distros are `ubuntu2204`, `ubuntu2404`, and `ubuntu2604`.
