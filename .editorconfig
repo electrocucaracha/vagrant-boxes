@@ -5,4 +5,5 @@ indent_style = space
 indent_size = 4
 
 [spec/*.sh]
+indent_size = 2
 ignore = true

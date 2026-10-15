@@ -54,6 +54,7 @@ network2204_main() {
     printf "ubuntu2204.localdomain\n" >"${NETWORK_HOSTNAME_FILE}"
     printf "\n127.0.0.1 ubuntu2204.localdomain\n\n" >>"${NETWORK_HOSTS_FILE}"
 
+    # editorconfig-checker-disable
     cat <<-EOF >"${NETWORK_NETPLAN_FILE}"
 		network:
 		  version: 2
@@ -66,6 +67,7 @@ network2204_main() {
 		      nameservers:
 		               addresses: [1.1.1.1, 1.0.0.1, 8.8.8.8, 8.8.4.4]
 	EOF
+    # editorconfig-checker-enable
 
     # Apply the network plan configuration.
     netplan generate

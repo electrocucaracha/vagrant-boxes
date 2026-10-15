@@ -735,7 +735,7 @@ function _write_metadata() {
                     providers: $providers
                 }
             ]
-	        }' >"${publish_dir}/metadata.json"
+        }' >"${publish_dir}/metadata.json"
 }
 
 function _deploy_www() {

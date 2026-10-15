@@ -26,6 +26,7 @@ keys_main() {
     rm -f "${SSH_KEY_CRON_PATH}"
     rm -f "${SSH_KEY_REGENERATE_SCRIPT}"
     # NOTE: dpkg-reconfigure restarts ssh.service, which deadlocks with Before=ssh.service
+    # editorconfig-checker-disable
     cat <<-'EOF' >"${SSH_KEY_REGENERATE_SERVICE}"
 		[Unit]
 		Description=Regenerate SSH host keys before SSH starts
@@ -41,6 +42,7 @@ keys_main() {
 		[Install]
 		WantedBy=ssh.service
 	EOF
+    # editorconfig-checker-enable
     systemctl daemon-reload
     systemctl enable regenerate-ssh-host-keys.service
 }

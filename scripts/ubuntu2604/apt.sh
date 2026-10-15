@@ -58,6 +58,7 @@ printf "nameserver 1.1.1.1\nnameserver 1.0.0.1\nnameserver 8.8.8.8\nnameserver 8
 sed -i -e 's/^Prompt=.*$/Prompt=never/' /etc/update-manager/release-upgrades
 
 if [ -f /usr/lib/ubuntu-release-upgrader/release-upgrade-motd ]; then
+    # editorconfig-checker-disable
     cat <<-EOF >/usr/lib/ubuntu-release-upgrader/release-upgrade-motd
 		#!/bin/sh
 		if [ -d /var/lib/ubuntu-release-upgrader/ ]; then
@@ -65,6 +66,7 @@ if [ -f /usr/lib/ubuntu-release-upgrader/release-upgrade-motd ]; then
 		fi
 		exit 0
 	EOF
+    # editorconfig-checker-enable
 fi
 
 # Remove a confusing, and potentially conflicting sources file left by the install process.
@@ -82,6 +84,7 @@ if [ -d /etc/apt/apt.conf.d/ ]; then
         sed -i "/^APT::Periodic::Download-Upgradeable-Packages/d" /etc/apt/apt.conf.d/10periodic
     fi
 
+    # editorconfig-checker-disable
     cat <<-EOF >>/etc/apt/apt.conf.d/10periodic
 
 		APT::Periodic::Enable "0";
@@ -91,13 +94,16 @@ if [ -d /etc/apt/apt.conf.d/ ]; then
 		APT::Periodic::Download-Upgradeable-Packages "0";
 
 	EOF
+    # editorconfig-checker-enable
 
     # We disable APT retries, to avoid inconsistent error handling, as it only retries some errors. Instead we let the retry function detect, and retry a given command regardless of the error.
+    # editorconfig-checker-disable
     cat <<-EOF >>/etc/apt/apt.conf.d/20retries
 
 		APT::Acquire::Retries "0";
 
 	EOF
+    # editorconfig-checker-enable
 
 fi
 

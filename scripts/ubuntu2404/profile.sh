@@ -4,6 +4,7 @@ PROFILE_ROOT_HOME=${PROFILE_ROOT_HOME:-/root}
 PROFILE_VAGRANT_HOME=${PROFILE_VAGRANT_HOME:-/home/vagrant}
 
 profile2404_main() {
+    # editorconfig-checker-disable
     cd "${PROFILE_ROOT_HOME}" && patch -p1 <<-EOF
 		diff --git a/.bashrc b/.bashrc
 		index f6939ee..545eaea 100644
@@ -47,12 +48,16 @@ profile2404_main() {
 		+    . /etc/bash_completion
 		+fi
 	EOF
+    # editorconfig-checker-enable
 
+    # editorconfig-checker-disable
     cat <<-EOF >"${PROFILE_ROOT_HOME}/.vimrc"
 		set mouse-=a
 	EOF
+    # editorconfig-checker-enable
 
     if [ -d "${PROFILE_VAGRANT_HOME}/" ] && [ -f "${PROFILE_VAGRANT_HOME}/.bashrc" ]; then
+        # editorconfig-checker-disable
         cd "${PROFILE_VAGRANT_HOME}/" && patch -p1 <<-EOF
 			diff --git a/.bashrc b/.bashrc
 			index b488fcc..559370c 100644
@@ -77,13 +82,16 @@ profile2404_main() {
 			 # check the window size after each command and, if necessary,
 			 # update the values of LINES and COLUMNS.
 		EOF
+        # editorconfig-checker-enable
         chown vagrant:vagrant "${PROFILE_VAGRANT_HOME}/.bashrc"
     fi
 
     if [ -d "${PROFILE_VAGRANT_HOME}/" ]; then
+        # editorconfig-checker-disable
         cat <<-EOF >"${PROFILE_VAGRANT_HOME}/.vimrc"
 			set mouse-=a
 		EOF
+        # editorconfig-checker-enable
         chown vagrant:vagrant "${PROFILE_VAGRANT_HOME}/.vimrc"
     fi
 }

@@ -89,7 +89,12 @@ make test
 
 Run `make fmt` before `make lint`.
 Shell scripts use four-space indentation to match CI,
-while `spec/` and `test/lib/` are excluded from shell formatting.
+while ShellSpec files use two spaces.
+The `spec/` and `test/lib/` directories are excluded from shell formatting.
+Tab-stripping heredocs (`<<-EOF`) retain the tabs required by Bash and `shfmt`.
+Scoped `editorconfig-checker-disable` and `editorconfig-checker-enable` comments
+exempt these heredocs from EditorConfig checks,
+without exempting the surrounding shell code.
 The Markdown pre-commit hook uses Node.js 22.23.3 and its bundled npm 10
 to avoid npm 11 rejecting pre-commit's global Git-package installation.
 Pre-commit downloads this runtime automatically,

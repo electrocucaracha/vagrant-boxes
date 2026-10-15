@@ -55,6 +55,7 @@ apt2204_main() {
     sed -i -e 's/^Prompt=.*$/Prompt=never/' "${APT_ETC_ROOT}/update-manager/release-upgrades"
 
     if [ -f "${APT_USR_LIB_ROOT}/ubuntu-release-upgrader/release-upgrade-motd" ]; then
+        # editorconfig-checker-disable
         cat <<-EOF >"${APT_USR_LIB_ROOT}/ubuntu-release-upgrader/release-upgrade-motd"
 			#!/bin/sh
 			if [ -d /var/lib/ubuntu-release-upgrader/ ]; then
@@ -62,6 +63,7 @@ apt2204_main() {
 			fi
 			exit 0
 		EOF
+        # editorconfig-checker-enable
     fi
 
     # Remove a confusing, and potentially conflicting sources file left by the install process.
@@ -79,6 +81,7 @@ apt2204_main() {
             sed -i "/^APT::Periodic::Download-Upgradeable-Packages/d" "${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
         fi
 
+        # editorconfig-checker-disable
         cat <<-EOF >>"${APT_ETC_ROOT}/apt/apt.conf.d/10periodic"
 
 			APT::Periodic::Enable "0";
@@ -88,13 +91,16 @@ apt2204_main() {
 			APT::Periodic::Download-Upgradeable-Packages "0";
 
 		EOF
+        # editorconfig-checker-enable
 
         # We disable APT retries, to avoid inconsistent error handling, as it only retries some errors. Instead we let the retry function detect, and retry a given command regardless of the error.
+        # editorconfig-checker-disable
         cat <<-EOF >>"${APT_ETC_ROOT}/apt/apt.conf.d/20retries"
 
 			APT::Acquire::Retries "0";
 
 		EOF
+        # editorconfig-checker-enable
 
     fi
 
