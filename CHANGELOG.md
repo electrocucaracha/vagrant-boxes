@@ -9,6 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.0.5] - 2026-10-23
+
+### Changed
+
+- Simplified the GitHub Actions workflow by delegating updates to the external gh-updater tool, eliminating manual update logic and improving reliability. [34f1746a](https://github.com/electrocucaracha/vagrant-boxes/commit/34f1746ac66fcde0c851c02d786eaa901a0f8893)
+
+## [8.0.4] - 2026-10-14
+
+### Changed
+
+- Updated the pre-commit hook for ai-prepare-commit-msg to v20.0.3, incorporating the latest features and fixes to improve its functionality. [de2786d7](https://github.com/electrocucaracha/vagrant-boxes/commit/de2786d748aaa628876a49d099e64ad9be00cf5e)
+
+## [8.0.3] - 2026-10-14
+
+### Fixed
+
+- Resolved the conflict between EditorConfig's whitespace rules and heredoc blocks in shell scripts by exempting heredocs from EditorConfig's checks while keeping the rest of the code under its rules. [6a22f698](https://github.com/electrocucaracha/vagrant-boxes/commit/6a22f6986c1a23dd152928272b884c98f395fcdf)
+
+## [8.0.2] - 2026-10-14
+
+### Changed
+
+- Enforced four-space indentation for shell scripts, ensuring consistency with CI formatting and excluding Spec and test/lib directories from formatting, while also updating the pre-commit hook to run with Node.js 22.23.3 for compatibility. [2333f45b](https://github.com/electrocucaracha/vagrant-boxes/commit/2333f45bf654dc4823f950c8836d0ffb00a6cf92)
+
+## [8.0.1] - 2026-10-14
+
+### Changed
+
+- Normalized shell scripts to use consistent four-space indentation, enabled systemd-resolved service, and adjusted DNSSEC settings, with no impact on script behavior. [03f12718](https://github.com/electrocucaracha/vagrant-boxes/commit/03f127188b850c579d26c101a8cdffce389e4ebc)
+
+## [8.0.0] - 2026-10-11
+
+### Removed
+
+- Simplified configuration management by eliminating a redundant line in .editorconfig and introducing default settings for automated validation through the .editorconfig-checker.json file. [69f5cb4d](https://github.com/electrocucaracha/vagrant-boxes/commit/69f5cb4d01cb201457dd7e78ddd7fb8445096380)
+
+## [7.1.2] - 2026-10-11
+
+### Changed
+
+- Simplified the management of action versions by updating the underlying dependencies in GitHub Actions and linter workflows to use the latest versions of actions/upload-artifact and super-linter. [4d3d355b](https://github.com/electrocucaracha/vagrant-boxes/commit/4d3d355b660f521987a1625f4208f3e1003b46d5)
+
+## [7.1.1] - 2026-10-09
+
+### Changed
+
+- Aligned the rclone test with the current deployment configuration by updating the test bucket to use the 'Cloudflare R2:vagrant-boxes' name. [b6167ce7](https://github.com/electrocucaracha/vagrant-boxes/commit/b6167ce7751a1d3145bf07fdd3c5d573493445e5)
+
+## [7.1.0] - 2026-10-08
+
+### Added
+
+- Enabled detailed changelog entries for releases 6.1.0 through 7.0.2, including fixes for deployment issues, improved idempotency, simplified SSH key regeneration, and enabled serial console output. [bbd51e9c](https://github.com/electrocucaracha/vagrant-boxes/commit/bbd51e9c618dc48e5376d986cfa2019dc0a5e7c2)
+
 ## [7.0.2] - 2026-10-08
 
 ### Fixed
