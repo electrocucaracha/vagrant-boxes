@@ -1,7 +1,7 @@
 {
-  "Author": "Ladar Levison",
-  "Website": "https://vagrantcloud.com/generic/",
-  "Artifacts": "https://vagrantcloud.com/generic/",
+  "Author": "Victor Morales",
+  "Website": "https://vagrantcloud.com/electrocucaracha-boxes/",
+  "Artifacts": "https://vagrantcloud.com/electrocucaracha-boxes/",
   "Repository": "https://github.com/electrocucaracha/vagrant-boxes",
   "Description": "Ubuntu Vagrant base boxes for the libvirt, VirtualBox, and UTM providers."
 }
