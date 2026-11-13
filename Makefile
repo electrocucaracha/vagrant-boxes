@@ -50,9 +50,11 @@ lint: cleanup
 
 .PHONY: fmt
 fmt: cleanup
-	command -v shfmt > /dev/null || curl -fsSL "https://i.jpillora.com/mvdan/sh!!?as=shfmt" | bash
-	find . \( -path './spec' -o -path './spec/*' -o -path './test/lib' -o -path './test/lib/*' \) -prune -o -type f \( -name '*.sh' -o -name '.credentialsrc' \) -print0 | xargs -0r shfmt -l -w -s -i 4
-	npx --yes textlint . --ignore-path .textlintignore --fix
-	npx --yes prettier . --write --ignore-unknown
-	command -v yamlfmt > /dev/null || curl -fsSL "https://i.jpillora.com/google/yamlfmt!!" | bash
-	find . -type f \( -name '*.yaml' -o -name '*.yml' \) -print0 | xargs -0r yamlfmt
+	command -v textlint > /dev/null && npm list --global --depth=0 textlint-rule-terminology > /dev/null 2>&1 || sudo npm install --global textlint textlint-rule-terminology
+	textlint . --fix
+	command -v shfmt > /dev/null || curl -s "https://i.jpillora.com/mvdan/sh!!?as=shfmt" | bash
+	shfmt -l -w -s -i 4 .
+	command -v yamlfmt > /dev/null || curl -s "https://i.jpillora.com/google/yamlfmt!!" | bash
+	yamlfmt -dstar **/*.{yaml,yml}
+	npx -y prettier . --write --ignore-path .gitignore
+	npx -y markdownlint-cli2 --fix .
