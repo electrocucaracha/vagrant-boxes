@@ -6,32 +6,22 @@
 # which accompanies this distribution, and is available at
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
-name: Scheduled Version Updates
+name: "Maintenance: Scheduled Dependency Version Updates"
 # yamllint disable-line rule:truthy
 on:
   schedule:
     - cron: "0 0 * * 5"
   workflow_dispatch:
 permissions: read-all
+concurrency:
+  group: scheduled-version-updates
+  cancel-in-progress: true
 jobs:
   check-versions:
-    name: Verify and update version files
-    runs-on: ubuntu-latest
+    name: Update Managed Version Files
     permissions:
       contents: write
       pull-requests: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          token: ${{ secrets.WORKFLOW_TOKEN }} # zizmor: ignore[secrets-outside-env]
-          persist-credentials: true
-      - name: Create pull request for version updates
-        uses: technote-space/create-pr-action@91114507cf92349bec0a9a501c2edf1635427bc5 # v2.1.4
-        with:
-          EXECUTE_COMMANDS: |
-            ./ci/update_versions.sh
-          COMMIT_MESSAGE: "chore: update versions"
-          COMMIT_NAME: "electrocucaracha bot"
-          PR_BRANCH_NAME: "versions-update-${PR_ID}"
-          PR_TITLE: "Upgrade versions files"
+    uses: electrocucaracha/gh-workflows/.github/workflows/update.yml@c176944b7c14a060634d926e2879ef11d3da71aa # v13.4.1
+    secrets:
+      WORKFLOW_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
