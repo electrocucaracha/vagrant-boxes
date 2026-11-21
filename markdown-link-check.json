@@ -1,0 +1,9 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^https?://(?:[a-z0-9-]+\\.)*youtube\\.com(?:[:/?#]|$)"
+    }
+  ],
+  "retryOn429": true,
+  "retryCount": 2
+}

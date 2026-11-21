@@ -1,5 +1,7 @@
 <!-- Markdownlint-disable MD024 -->
 
+<!-- markdown-link-check-disable -->
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -8,6 +10,54 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [8.2.2] - 2026-11-20
+
+### Changed
+
+- Simplified the linter workflow by eliminating unnecessary permissions and leveraging centralized lint logic, making the linting pipeline easier to maintain and less error-prone. [48de9658](https://github.com/electrocucaracha/vagrant-boxes/commit/48de9658640700e4b30211a347fd324d21b82457)
+
+## [8.2.1] - 2026-11-20
+
+### Changed
+
+- Standardized linter execution is now enabled through a centralized workflow from electrocucaracha/gh-workflows, eliminating local configuration and preserving custom variable overrides. [95cfb81b](https://github.com/electrocucaracha/vagrant-boxes/commit/95cfb81ba62289f32a74a871bd353bfbda3844e0)
+
+## [8.2.0] - 2026-11-13
+
+### Added
+
+- Enabled automatic code review requests for all repository files by introducing a CODEOWNERS file designating @electrocucaracha as the default code owner. [1d5912c7](https://github.com/electrocucaracha/vagrant-boxes/commit/1d5912c7304b2e25362caa35d32b2d60ea3e9be3)
+
+## [8.1.4] - 2026-11-13
+
+### Changed
+
+- Simplified the update process for scheduled version updates by centralizing maintenance and ensuring a shared, up-to-date process through the use of a reusable workflow from electrocucaracha/gh-workflows, while also preventing overlapping scheduled runs. [2157651f](https://github.com/electrocucaracha/vagrant-boxes/commit/2157651f7242d9c269c7f9d152923806e9b2d4d8)
+
+## [8.1.3] - 2026-11-13
+
+### Changed
+
+- Optimized the fmt target to streamline development and ensure consistent formatting across file types by enabling textlint for Markdown files, integrating prettier with .gitignore, and simplifying path handling for shfmt and yamlfmt commands. [5548422a](https://github.com/electrocucaracha/vagrant-boxes/commit/5548422a7b4590c191e1866eabe191527cbd4589)
+
+## [8.1.2] - 2026-11-13
+
+### Changed
+
+- Updated pre-commit tooling to the latest versions of markdownlint-cli and ai-prepare-commit-msg, ensuring users have access to the latest features and bugfixes without any changes to config variables or usage. [e33127b2](https://github.com/electrocucaracha/vagrant-boxes/commit/e33127b286454d44bb538621ab2daa50581e6e50)
+
+## [8.1.1] - 2026-10-26
+
+### Changed
+
+- Updated the author and URLs in info.json to accurately reflect the origin and ownership of the Vagrant base boxes on vagrantcloud.com/electrocucaracha-boxes. [13e13c6a](https://github.com/electrocucaracha/vagrant-boxes/commit/13e13c6aa31277b13499de2d3c6f6742445144da)
+
+## [8.1.0] - 2026-10-23
+
+### Added
+
+- Enabled detailed documentation of recent releases by adding changelog entries for releases 7.1.0 to 8.0.5, covering changes, fixes, and improvements to workflows, pre-commit hooks, EditorConfig exemptions, and configuration management. [bb0f6c3d](https://github.com/electrocucaracha/vagrant-boxes/commit/bb0f6c3d61c4c3c3a16d3e0fd9e5f4ca74010e21)
 
 ## [8.0.5] - 2026-10-23
 
