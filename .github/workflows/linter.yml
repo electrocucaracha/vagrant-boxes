@@ -7,7 +7,8 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 name: Lint Code Base
-"on":
+# yamllint disable-line rule:truthy
+on:
   push:
   pull_request:
 permissions: read-all
@@ -32,23 +33,14 @@ jobs:
         run: scc --format wide
   check-super-linter:
     name: Check syntax (super-linter)
-    runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: read
       models: read
       issues: write
-      pull-requests: write
-      statuses: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: electrocucaracha/gh-workflows/.github/workflows/linter.yml@71e4e96b50b203c2b8e7d680859c5c3136d8acc3 # v14.1.1
-        with:
-          validate_overrides: |-
-            {
-               "SAVE_SUPER_LINTER_OUTPUT": true,
-               "KUBERNETES_KUBECONFORM_OPTIONS": "-ignore-missing-schemas"
-            }
+    uses: electrocucaracha/gh-workflows/.github/workflows/linter.yml@71e4e96b50b203c2b8e7d680859c5c3136d8acc3 # v14.1.1
+    with:
+      validate_overrides: |-
+        {
+          "SAVE_SUPER_LINTER_OUTPUT": true,
+          "KUBERNETES_KUBECONFORM_OPTIONS": "-ignore-missing-schemas"
+        }
