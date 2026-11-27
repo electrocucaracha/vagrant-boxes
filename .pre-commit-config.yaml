@@ -30,7 +30,7 @@ repos:
         files: .*\.sh
         exclude: ".tox/.*"
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.50.0
+    rev: v0.50.1
     hooks:
       - id: markdownlint
         # Use npm 10 to support pre-commit's git+file hook installation.
