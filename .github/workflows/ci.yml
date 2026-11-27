@@ -373,7 +373,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
         # jscpd:ignore-end
       # yamllint disable rule:line-length
-      - uses: jayqi/failed-build-issue-action@940568ce50eeef3f31a920614cefcc6102d2f930 # v1.3.0
+      - uses: jayqi/failed-build-issue-action@20c082d7b8ad9e32464211b83fe07b1175164335 # v1.4.0
         # yamllint enable rule:line-length
         if: failure()
         with:
